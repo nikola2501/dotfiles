@@ -8,3 +8,6 @@ args = [
 "--quiet",
 "--line-length=79",
 ]
+
+[language-server.gopls.config]
+buildFlags = ["-tags", "integration,e2e"]
