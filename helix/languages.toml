@@ -11,3 +11,9 @@ args = [
 
 [language-server.gopls.config]
 buildFlags = ["-tags", "integration,e2e"]
+
+
+[language-server.lua-language-server.config.Lua]
+workspace = { library = ["${3rd}/love2d/library"] }
+diagnostics = { globals = ["love"] }
+completion = { enable = true, callSnippet = "Both" }
