@@ -1,0 +1,24 @@
+# theme = tokyonight
+theme = kanagawabones
+# font-family = GohuFont uni14 Nerd Font Propo
+# font-family = Menlo
+font-family = Monaco
+font-size = 24
+font-feature = -liga
+
+cursor-invert-fg-bg = true
+selection-invert-fg-bg = true
+
+copy-on-select = true
+
+keybind = super+c=copy_to_clipboard
+keybind = super+v=paste_from_clipboard
+keybind = super+s=paste_from_selection
+
+clipboard-read = allow
+clipboard-write = allow
+copy-on-select = true
+clipboard-paste-protection = false
+window-theme = dark
+bold-is-bright = true
+keybind = shift+enter=text:\n

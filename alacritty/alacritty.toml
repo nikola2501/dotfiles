@@ -1,81 +1,284 @@
-[[colors.indexed_colors]]
-color = "#FAB387"
-index = 16
-
-[[colors.indexed_colors]]
-color = "#F5E0DC"
-index = 17
-
-[colors.bright]
-black = "#585B70"
-blue = "#89B4FA"
-cyan = "#94E2D5"
-green = "#A6E3A1"
-magenta = "#F5C2E7"
-red = "#F38BA8"
-white = "#A6ADC8"
-yellow = "#F9E2AF"
-
-[colors.cursor]
-cursor = "#F5E0DC"
-text = "#1E1E2E"
-
-[colors.dim]
-black = "#45475A"
-blue = "#89B4FA"
-cyan = "#94E2D5"
-green = "#A6E3A1"
-magenta = "#F5C2E7"
-red = "#F38BA8"
-white = "#BAC2DE"
-yellow = "#F9E2AF"
-
-[colors.hints.end]
-background = "#A6ADC8"
-foreground = "#1E1E2E"
-
-[colors.hints.start]
-background = "#F9E2AF"
-foreground = "#1E1E2E"
-
-[colors.normal]
-black = "#45475A"
-blue = "#89B4FA"
-cyan = "#94E2D5"
-green = "#A6E3A1"
-magenta = "#F5C2E7"
-red = "#F38BA8"
-white = "#BAC2DE"
-yellow = "#F9E2AF"
-
-[colors.primary]
-background = "#1E1E2E"
-bright_foreground = "#CDD6F4"
-dim_foreground = "#CDD6F4"
-foreground = "#CDD6F4"
-
-[colors.search.focused_match]
-background = "#A6E3A1"
-foreground = "#1E1E2E"
-
-# [colors.search.footer_bar]
-# background = "#A6ADC8"
-# foreground = "#1E1E2E"
-
-[colors.search.matches]
-background = "#A6ADC8"
-foreground = "#1E1E2E"
-
-[colors.selection]
-background = "#F5E0DC"
-text = "#1E1E2E"
-
-[colors.vi_mode_cursor]
-cursor = "#B4BEFE"
-text = "#1E1E2E"
+[font.normal]
+family = "Menlo"
+# family ="InconsolataGo Nerd Font"
+# family ="GohuFont uni11 Nerd Font Mono"
+# family ="GohuFont uni11 Nerd Font Mono"
+# family ="CommitMono Nerd Font"
+# family ="UbuntuSans Nerd Font"
 
 [font]
-size = 14
+size = 22
+offset = { x = 0, y = 4 }
 
-[font.normal]
-family = "JetbrainsMono Nerd Font"
+### Themes ###
+
+# Tokyo night storm
+# [colors.bright]
+# black = "#444b6a"
+# blue = "#7da6ff"
+# cyan = "#0db9d7"
+# green = "#b9f27c"
+# magenta = "#bb9af7"
+# red = "#ff7a93"
+# white = "#acb0d0"
+# yellow = "#ff9e64"
+
+# [colors.normal]
+# black = "#32344a"
+# blue = "#7aa2f7"
+# cyan = "#449dab"
+# green = "#9ece6a"
+# magenta = "#ad8ee6"
+# red = "#f7768e"
+# white = "#9699a8"
+# yellow = "#e0af68"
+
+# [colors.primary]
+# background = "#24283b"
+# foreground = "#a9b1d6"
+
+
+# Gruvbox
+# The definition of color schemes.
+
+# [colors.primary]
+# background = "0x282828"
+# foreground = "0xdfbf8e"
+#
+# [colors.normal]
+# black = "0x665c54"
+# red = "0xea6962"
+# green = "0xa9b665"
+# yellow = "0xe78a4e"
+# blue = "0x7daea3"
+# magenta = "0xd3869b"
+# cyan = "0x89b482"
+# white = "0xdfbf8e"
+#
+# [colors.bright]
+# black = "0x928374"
+# red = "0xea6962"
+# green = "0xa9b665"
+# yellow = "0xe3a84e"
+# blue = "0x7daea3"
+# magenta = "0xd3869b"
+# cyan = "0x89b482"
+# white = "0xdfbf8e"
+
+
+# catppuccino theme for Alacritty
+#
+# [colors.bright]
+# black = "#444b6a"
+# blue = "#7da6ff"
+# cyan = "#0db9d7"
+# green = "#b9f27c"
+# magenta = "#bb9af7"
+# red = "#ff7a93"
+# white = "#acb0d0"
+# yellow = "#ff9e64"
+#
+# [colors.normal]
+# black = "#32344a"
+# blue = "#7aa2f7"
+# cyan = "#449dab"
+# green = "#9ece6a"
+# magenta = "#ad8ee6"
+# red = "#f7768e"
+# white = "#787c99"
+# yellow = "#e0af68"
+#
+# [colors.primary]
+# background = "#1a1b26"
+# foreground = "#a9b1d6"
+#
+
+#rose-pine dawn
+#
+# [colors.primary]
+# foreground = "#575279"
+# background = "#faf4ed"
+# dim_foreground = "#797593"
+# bright_foreground = "#575279"
+#
+# [colors.cursor]
+# text = "#575279"
+# cursor = "#cecacd"
+#
+# [colors.vi_mode_cursor]
+# text = "#575279"
+# cursor = "#cecacd"
+#
+# [colors.search.matches]
+# foreground = "#797593"
+# background = "#f2e9e1"
+#
+# [colors.search.focused_match]
+# foreground = "#faf4ed"
+# background = "#d7827e"
+#
+# [colors.hints.start]
+# foreground = "#797593"
+# background = "#fffaf3"
+#
+# [colors.hints.end]
+# foreground = "#9893a5"
+# background = "#fffaf3"
+#
+# [colors.line_indicator]
+# foreground = "None"
+# background = "None"
+#
+# [colors.footer_bar]
+# foreground = "#575279"
+# background = "#fffaf3"
+#
+# [colors.selection]
+# text = "#575279"
+# background = "#dfdad9"
+#
+# [colors.normal]
+# black = "#f2e9e1"
+# red = "#b4637a"
+# green = "#286983"
+# yellow = "#ea9d34"
+# blue = "#56949f"
+# magenta = "#907aa9"
+# cyan = "#d7827e"
+# white = "#575279"
+#
+# [colors.bright]
+# black = "#9893a5"
+# red = "#b4637a"
+# green = "#286983"
+# yellow = "#ea9d34"
+# blue = "#56949f"
+# magenta = "#907aa9"
+# cyan = "#d7827e"
+# white = "#575279"
+#
+# [colors.dim]
+# black = "#9893a5"
+# red = "#b4637a"
+# green = "#286983"
+# yellow = "#ea9d34"
+# blue = "#56949f"
+# magenta = "#907aa9"
+# cyan = "#d7827e"
+# white = "#575279"
+#
+# catppuccin latte
+# [colors.primary]
+# background = "#eff1f5"
+# foreground = "#4c4f69"
+# dim_foreground = "#8c8fa1"
+# bright_foreground = "#4c4f69"
+#
+# [colors.cursor]
+# text = "#eff1f5"
+# cursor = "#dc8a78"
+#
+# [colors.vi_mode_cursor]
+# text = "#eff1f5"
+# cursor = "#7287fd"
+#
+# [colors.search.matches]
+# foreground = "#eff1f5"
+# background = "#6c6f85"
+#
+# [colors.search.focused_match]
+# foreground = "#eff1f5"
+# background = "#40a02b"
+#
+# [colors.footer_bar]
+# foreground = "#eff1f5"
+# background = "#6c6f85"
+#
+# [colors.hints.start]
+# foreground = "#eff1f5"
+# background = "#df8e1d"
+#
+# [colors.hints.end]
+# foreground = "#eff1f5"
+# background = "#6c6f85"
+#
+# [colors.selection]
+# text = "#eff1f5"
+# background = "#dc8a78"
+#
+# [colors.normal]
+# black = "#bcc0cc"
+# red = "#d20f39"
+# green = "#40a02b"
+# yellow = "#df8e1d"
+# blue = "#1e66f5"
+# magenta = "#ea76cb"
+# cyan = "#179299"
+# white = "#5c5f77"
+#
+# [colors.bright]
+# black = "#acb0be"
+# red = "#d20f39"
+# green = "#40a02b"
+# yellow = "#df8e1d"
+# blue = "#1e66f5"
+# magenta = "#ea76cb"
+# cyan = "#179299"
+# white = "#6c6f85"
+#
+# [colors.dim]
+# black = "#bcc0cc"
+# red = "#d20f39"
+# green = "#40a02b"
+# yellow = "#df8e1d"
+# blue = "#1e66f5"
+# magenta = "#ea76cb"
+# cyan = "#179299"
+# white = "#5c5f77"
+#
+# [[colors.indexed_colors]]
+# index = 16
+# color = "#fe640b"
+#
+# [[colors.indexed_colors]]
+# index = 17
+# color = "#dc8a78"
+
+# Colors (Kanagawa Wave)
+# Source https//github.com/rebelot/kanagawa.nvim
+
+[colors.primary]
+background = '#1f1f28'
+foreground = '#dcd7ba'
+
+[colors.normal]
+black   = '#090618'
+red     = '#c34043'
+green   = '#76946a'
+yellow  = '#c0a36e'
+blue    = '#7e9cd8'
+magenta = '#957fb8'
+cyan    = '#6a9589'
+white   = '#c8c093'
+
+[colors.bright]
+black   = '#727169'
+red     = '#e82424'
+green   = '#98bb6c'
+yellow  = '#e6c384'
+blue    = '#7fb4ca'
+magenta = '#938aa9'
+cyan    = '#7aa89f'
+white   = '#dcd7ba'
+
+[colors.selection]
+background = '#2d4f67'
+foreground = '#c8c093'
+
+[[colors.indexed_colors]]
+index = 16
+color = '#ffa066'
+
+[[colors.indexed_colors]]
+index = 17
+color = '#ff5d62'

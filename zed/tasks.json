@@ -1,0 +1,33 @@
+[
+  {
+    "label": "MODULE tests",
+    "command": "cd $ZED_DIRNAME && set -o pipefail && go test -v ./... -json | tparse -all",
+    "use_new_terminal": false,
+    "reveal": "always"
+  },
+  {
+    "label": "SINGLE test",
+    "command": "go test -v $ZED_DIRNAME -testify.m $ZED_SYMBOL -json | tparse -all",
+    "use_new_terminal": false,
+    "reveal": "always"
+  },
+  {
+    "label": "OPEN remote",
+    "command": "gh browse $ZED_RELATIVE_FILE:$ZED_ROW",
+    "use_new_terminal": false,
+    "reveal": "never"
+  },
+  {
+    "label": "STATICCHECK",
+    "command": "staticcheck $ZED_DIRNAME/...",
+    "use_new_terminal": false,
+    "reveal": "always"
+  },
+  {
+    "label": "lazygit",
+    "command": "lazygit",
+    "use_new_terminal": true,
+    "allow_concurrent_runs": false,
+    "reveal": "always"
+  }
+]

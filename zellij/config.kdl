@@ -1,0 +1,29 @@
+keybinds {
+    // https://zellij.dev/documentation/keybindings-possible-actions
+    session {
+        // unbind "Ctrl o"
+        // bind "Ctrl l" { SwitchToMode "Normal"; }
+    }
+    shared_except "session" "locked" {
+        // unbind "Ctrl o"
+        // bind "Ctrl k" { SwitchToMode "Session"; }
+        // unbind "Ctrl g"
+        // bind "Ctrl m" { SwitchToMode "Locked"; }
+        // unbind "Ctrl t"
+        // bind "Ctrl k" { SwitchToMode "Tab"; }
+        // unbind "Ctrl n"
+        // bind "Ctrl p" { SwitchToMode "Resize"; }
+        bind "Ctrl a" { EditScrollback; }
+    }
+    
+    shared_except "tab" "locked" {
+        // bind "Ctrl z" { GoToTab 1; SwitchToMode "Normal"; }
+        // bind "Ctrl x" { GoToTab 2; SwitchToMode "Normal"; }
+        // bind "Ctrl e" { GoToTab 3; SwitchToMode "Normal"; }
+        // bind "Ctrl y" { GoToTab 4; SwitchToMode "Normal"; }
+    }
+}
+theme "catppuccin-macchiato" // or latte, frappe and macchiato
+// theme "default"
+// theme "gruvbox-dark"
+

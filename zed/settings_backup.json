@@ -2,11 +2,11 @@
   "show_edit_predictions": true,
   "icon_theme": "Colored Zed Icons Theme Dark",
   "agent": {
-    "always_allow_tool_actions": true,
     "default_model": {
       "provider": "copilot_chat",
-      "model": "gpt-4o"
+      "model": "claude-sonnet-4"
     },
+    "version": "2"
   },
   "diagnostics": {
     "inline": {
