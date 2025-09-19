@@ -71,8 +71,8 @@ ZSH_THEME="robbyrussell"
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
 
-source /Users/nikola/repos/installs/zsh-autocomplete/zsh-autocomplete.plugin.zsh
-plugins=(git zsh-autosuggestions zsh-syntax-highlighting fast-syntax-highlighting zsh-autocomplete)
+# source /Users/nikola/repos/installs/zsh-autocomplete/zsh-autocomplete.plugin.zsh
+plugins=(git zsh-autosuggestions zsh-syntax-highlighting)
 
 
 source $ZSH/oh-my-zsh.sh
@@ -163,7 +163,7 @@ nnn ()
 }
 
 
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+source <(fzf --zsh)
 
 
 
