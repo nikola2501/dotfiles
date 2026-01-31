@@ -56,34 +56,53 @@ esc = ["collapse_selection", "keep_primary_selection"]
 C-u = ["half_page_up", "align_view_center"]
 C-d = ["half_page_down", "align_view_center"]
 X = ["extend_line_up"]
-F1 = ["goto_previous_buffer"]
-F2 = ["goto_next_buffer"]
+C-p = ["goto_previous_buffer"]
+C-n = ["goto_next_buffer"]
 # C-k = [":new", ":insert-output lazygit", ":buffer-close!", ":redraw"]
 # C-x = [":new", ":insert-output lf-pick",  "select_all", "split_selection_on_newline", "goto_file", "goto_last_modified_file", ":buffer-close!", ":redraw" ]
 # C-t = ["extend_to_line_bounds", ":pipe sh ~/.config/helix/exec.sh 2>&1"]
 "ret" = "goto_word"
 space.o = "file_picker_in_current_buffer_directory"
 # C-e=[":w",":config-reload"]
-space.1 = [
-  ':sh rm -f /tmp/unique-file',
-  ':insert-output yazi %{buffer_name} --chooser-file=/tmp/unique-file',
-  ':insert-output echo "\x1b[?1049h\x1b[?2004h" > /dev/tty',
-  ':open %sh{cat /tmp/unique-file}',
-  ':redraw',
-]
+# space.1 = [
+#   ':sh rm -f /tmp/unique-file',
+#   ':insert-output yazi %{buffer_name} --chooser-file=/tmp/unique-file',
+#   ':insert-output echo "\x1b[?1049h\x1b[?2004h" > /dev/tty',
+#   ':open %sh{cat /tmp/unique-file}',
+#   ':redraw',
+# ]
 # space.1 = ":sh tmux popup -d \"#{pane_current_path}\" -xC -yC -w95%% -h95%% -E yazi"
 # space.2 = ":sh tmux popup -d \"#{pane_current_path}\" -xC -yC -w95%% -h95%% -E lazygit"
-# space.3 = [":sh tmux popup -d \"#{pane_current_path}\" -xC -yC -w95%% -h95%% -E /Users/nikola/repos/ghostintherepo/makybara/makybara"]
-space.2 = [":new", ":insert-output lazygit", ":buffer-close!", ":redraw"]
+# RADI
+# space.3 = [":pipe tmux popup -d \"#{pane_current_path}\" -xC -yC -w95%% -h95%% -E /home/nikola/repos/me/makybara/makybara ":open %sh{cat /home/nikola/repos/me/makybara/select.txt}", ":redraw"]
+#
+# RADI
+# space.3 = [
+#   ":sh tmux popup -d \"#{pane_current_path}\" -xC -yC -w95%% -h95%% -E /home/nikola/repos/me/makybara/makybara 'go build .'", 
+#   ":open %sh{tmux show-environment -g MAKY_CHOICE | sed 's/MAKY_CHOICE=//'}",
+#   ":redraw"
+# ]
+# space.1 = [":open %sh{tmux show-environment -g MAKY_CHOICE | sed 's/MAKY_CHOICE=//'}", ":redraw"]
+# space.3 = [":sh tmux popup -d \"#{pane_current_path}\" -xC -yC -w95%% -h95%% -E /home/nikola/repos/me/makybara/makybara -c 'go build .'"]
+# space.4 = [":sh tmux popup -d \"#{pane_current_path}\" -xC -yC -w95%% -h95%% -E /home/nikola/repos/me/makybara/makybara -c '/home/nikola/go/bin/golangci-lint run'"]
+# space.5 = [":sh tmux popup -d \"#{pane_current_path}\" -xC -yC -w95%% -h95%% -E /home/nikola/repos/me/makybara/makybara -s"]
+
+space.1 = [":new", ":insert-output lazygit", ":buffer-close!", ":redraw"]
+space.2 = ":sh tmux popup -d \"#{pane_current_path}\" -xC -yC -w95%% -h95%% -E nnn"
 D=":bc"
 L=":rla"
 q.a=":ab"
 q.d=":rb"
 q.0=":j 0"
+F1=":j 0"
 q.1=":j 1"
+F2=":j 1"
 q.2=":j 2"
+F3=":j 2"
 q.3=":j 3"
+F4=":j 3"
 q.4=":j 4"
+F5=":j 4"
 
 # move/copy line below/above
 "A-j" = [ "extend_to_line_bounds", "delete_selection", "paste_after" ]
