@@ -89,6 +89,9 @@ space.o = "file_picker_in_current_buffer_directory"
 
 space.1 = [":new", ":insert-output lazygit", ":buffer-close!", ":redraw"]
 space.2 = ":sh tmux popup -d \"#{pane_current_path}\" -xC -yC -w95%% -h95%% -E nnn"
+space.3 = ":sh tmux popup -d \"#{pane_current_path}\" -xC -yC -w95%% -h95%% -E 'git diff main -- | diffnav'"
+space.4 = ":sh tmux popup -d \"#{pane_current_path}\" -xC -yC -w95%% -h95%% -E tig"
+space.5 = ":sh tmux popup -d \"#{pane_current_path}\" -xC -yC -w95%% -h95%% -E 'gh dash'"
 D=":bc"
 L=":rla"
 q.a=":ab"
