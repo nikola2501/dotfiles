@@ -1,0 +1,54 @@
+%YAML 1.2
+---
+name: Zig Mini
+file_extensions: [zig]
+scope: source.zig
+
+contexts:
+  main:
+    # 1. Komentari
+    - match: //
+      scope: punctuation.definition.comment.zig
+      push: line_comment
+
+    # 2. Brojevi (podržava 123, 0xFF, 0b101 i underscore 1_000)
+    - match: \b(0x[0-9a-fA-F_]+|0b[01_]+|0o[0-7_]+|[0-9][0-9_]*)\b
+      scope: constant.numeric.zig
+
+    # 3. Ključne reči
+    - match: \b(return|if|for|fn|pub|extern|const|var|else|switch|while|try|catch|break|continue)\b
+      scope: keyword.control.zig
+
+    # 4. Tipovi podataka (opciono, ali lepo izgleda)
+    - match: \b(u8|i32|i64|f32|f64|bool|void|anytype|type|anyerror)\b
+      scope: storage.type.zig
+
+    # 5. Obični stringovi
+    - match: '"'
+      scope: punctuation.definition.string.begin.zig
+      push: string_context
+
+    # 6. Multi-line stringovi
+    - match: \\\\
+      scope: string.quoted.double.zig
+      push: multiline_string
+
+  # --- POMOĆNI KONTEKSTI ---
+
+  line_comment:
+    - meta_scope: comment.line.double-slash.zig
+    - match: $
+      pop: true
+
+  string_context:
+    - meta_scope: string.quoted.double.zig
+    - match: '\\.'
+      scope: constant.character.escape.zig
+    - match: '"'
+      scope: punctuation.definition.string.end.zig
+      pop: true
+
+  multiline_string:
+    - meta_scope: string.quoted.double.zig
+    - match: $
+      pop: true

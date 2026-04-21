@@ -1,0 +1,28 @@
+{
+    "shell_cmd": "git status",
+    "working_dir": "${folder:${project_path}}",
+    "selector": "source",
+    "file_regex": "(?:modified:|new file:|deleted:|copy from:|rename from:)\\s+(.*)$|diff --git a/(.*) b/",
+    "variants": [
+        {
+            "name": "Git Status (Full)",
+            "shell_cmd": "git status"
+        },
+        {
+            "name": "Git Add Current File",
+            "shell_cmd": "git add \"$file\" && git status"
+        },
+        {
+            "name": "Git Diff File",
+            "shell_cmd": "git diff \"$file\""
+        },
+        {
+            "name": "Git Log (Short)",
+            "shell_cmd": "git log --oneline -n 10"
+        },
+        {
+            "name": "Git Pull",
+            "shell_cmd": "git pull"
+        }
+    ]
+}

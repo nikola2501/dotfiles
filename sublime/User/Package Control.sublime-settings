@@ -1,0 +1,24 @@
+{
+	"bootstrapped": true,
+	"installed_packages":
+	[
+		"Color Scheme - Vintage Terminal",
+		"CTags",
+		"Dark PRO Color Schemes",
+		"DarkLime Color Scheme",
+		"Golang",
+		"Limegrass Color Scheme",
+		"LSP",
+		"LSP-gopls",
+		"Odin",
+		"Package Control",
+	],
+	"in_process_packages":
+	[
+	],
+	"downloader_precedence": {
+        "osx": ["curl", "urllib", "oscrypto"],
+        "linux": ["curl", "urllib", "oscrypto", "wget"],
+        "windows": ["wininet"],
+    },
+}

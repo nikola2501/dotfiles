@@ -1,0 +1,36 @@
+[
+	// { 
+    //     "keys": ["alt+`"], 
+    //     "command": "toggle_terminus_panel" 
+    // },
+    // { 
+    //     "keys": ["super+;"], 
+    //     "command": "set_build_system", 
+    //     "args": { "file": "Packages/builds/Python.sublime-build" } 
+    // }
+
+    { 
+        "keys": ["super+alt+g"], 
+        "command": "set_build_system", 
+        "args": { "file": "Packages/User/UniversalGit.sublime-build" } 
+    },
+   { 
+        "keys": ["super+alt+t"], 
+        "command": "set_build_system", 
+        "args": { "file": "Packages/User/Tenet.sublime-build" } 
+    },
+      {
+          "keys": ["f11"],
+          "command": "lsp_hover",
+          "context": [
+              { "key": "lsp.session_with_capability", "operator": "equal", "operand": "definitionProvider" }
+          ]
+      },
+      {
+        "keys": ["f12"],
+        "command": "lsp_symbol_definition",
+        "context": [
+            { "key": "lsp.session_with_capability", "operator": "equal", "operand": "definitionProvider" }
+        ]
+    }
+]

@@ -1,0 +1,45 @@
+{
+    "shell_cmd": "make build",
+    "working_dir": "${project_path:${folder}}",
+    "file_regex": "^([^\\s].*\\.go):(\\d+):(\\d+):\\s+(.*)$",
+    "selector": "source.go",
+    "env": {
+        "GOPRIVATE": "github.com/cko-*"
+    },
+    "variants": [
+        { "name": "Build All", "shell_cmd": "make build-all" },
+        { "name": "Build Controller", "shell_cmd": "make build-tenet-controller" },
+        { "name": "Build Config Controller", "shell_cmd": "make build-tenet-config-controller" },
+        { "name": "Build CLI", "shell_cmd": "make build-tenet" },
+        { "name": "Build Lambda CH Worker", "shell_cmd": "make build-lambda-ch-worker" },
+        { "name": "Build Lambda Update Client Facts", "shell_cmd": "make build-lambda-update-client-facts-zip" },
+        { "name": "─── Testing ───", "shell_cmd": "true" },
+        { "name": "Test All", "shell_cmd": "make test" },
+        { 
+            "name": "Test Current Package", 
+            "shell_cmd": "cd \"${file_path}\" && go test -race -timeout=180s -count=1 ./..." 
+        },
+        { 
+            "name": "Test Current File", 
+            "shell_cmd": "cd \"${file_path}\" && go test -race -timeout=180s -count=1 -run '' ./..." 
+        },
+        { "name": "BQ Integration Test", "shell_cmd": "make bq-integration-test" },
+        { "name": "─── Code Quality ───", "shell_cmd": "true" },
+        { "name": "Lint", "shell_cmd": "make lint" },
+        { "name": "Format", "shell_cmd": "make fmt" },
+        { "name": "Vendor", "shell_cmd": "make vendor" },
+        { "name": "Generate", "shell_cmd": "make generate" },
+        { "name": "Generate Actions", "shell_cmd": "make generate-actions" },
+        { "name": "─── Infrastructure ───", "shell_cmd": "true" },
+        { "name": "Start DBs (DynamoDB + S3 + Redis)", "shell_cmd": "make start-dbs" },
+        { "name": "Clean DBs", "shell_cmd": "make clean-dbs" },
+        { "name": "Start Redis Cluster", "shell_cmd": "make start-redis-cluster" },
+        { "name": "Start Localstack", "shell_cmd": "make start-localstack" },
+        { "name": "BQ Emulator Up", "shell_cmd": "make bq-emulator-up" },
+        { "name": "BQ Emulator Down", "shell_cmd": "make bq-emulator-down" },
+        { "name": "─── Load Testing ───", "shell_cmd": "true" },
+        { "name": "Load Test Local", "shell_cmd": "make load-test-tenet" },
+        { "name": "─── Tools ───", "shell_cmd": "true" },
+        { "name": "Install Tools", "shell_cmd": "make install-tools" }
+    ]
+}
