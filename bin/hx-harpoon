@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+# hx-harpoon — per-project pinned file list for Helix, harpoon-style.
+#
+#   hx-harpoon add <file> <line>   pin a file (re-pinning updates the line, keeps the slot)
+#   hx-harpoon get <n>             print the nth mark as  path:row  (for :open)
+#   hx-harpoon file                print the marks file path (open it to edit the list)
+#   hx-harpoon list                numbered listing
+#   hx-harpoon clear               drop all marks for this project
+#
+# Marks are absolute  path:row  lines — exactly what Helix's :open parses — so
+# the marks file doubles as a buffer you can jump from with A-ret.
+#
+# Portable to macOS (bash 3.2, BSD userland) and Linux.
+
+set -uo pipefail
+
+MAX=9
+
+find_root() {
+  local d=$PWD
+  while [ "$d" != "/" ]; do
+    for m in .git Cargo.toml go.mod build.zig CMakeLists.txt Makefile package.json ols.json; do
+      [ -e "$d/$m" ] && { echo "$d"; return; }
+    done
+    d=$(dirname "$d")
+  done
+  echo "$PWD"
+}
+
+# Absolutize + normalize without realpath(1): BSD realpath has no -m, and the
+# target file need not exist yet.
+abspath() {
+  local p=$1 out="" part IFS=/
+  case $p in /*) ;; *) p=$PWD/$p ;; esac
+  for part in $p; do
+    case $part in
+      ''|.) ;;
+      ..)   out=${out%/*} ;;
+      *)    out=$out/$part ;;
+    esac
+  done
+  echo "${out:-/}"
+}
+
+root=$(find_root)
+dir="${XDG_DATA_HOME:-$HOME/.local/share}/helix/harpoon"
+mkdir -p "$dir"
+marks="$dir/$(printf '%s' "$root" | sed 's|/|%|g')"
+[ -f "$marks" ] || : > "$marks"
+
+case "${1:-list}" in
+  add)
+    f=${2:?need a file}; line=${3:-1}
+    [ "$f" = "[scratch]" ] && { echo "harpoon: scratch buffer, save it first"; exit 0; }
+    abs=$(abspath "$f")
+    if grep -qxF -- "$abs:$line" "$marks"; then
+      n=$(grep -nxF -- "$abs:$line" "$marks" | head -1 | cut -d: -f1)
+      echo "harpoon $n: ${abs#"$root"/}:$line (already pinned)"
+      exit 0
+    fi
+    tmp="$marks.$$"
+    if grep -q "^$abs:" "$marks"; then          # re-pin: keep the slot, update the row
+      awk -v a="$abs" -v l="$line" '{ if (index($0, a ":") == 1) print a ":" l; else print }' "$marks" > "$tmp"
+    else
+      { cat "$marks"; echo "$abs:$line"; } > "$tmp"
+    fi
+    head -n "$MAX" "$tmp" > "$marks"; rm -f "$tmp"
+    n=$(grep -n "^$abs:" "$marks" | head -1 | cut -d: -f1)
+    echo "harpoon $n: ${abs#"$root"/}:$line"
+    ;;
+  get)   sed -n "${2:?need an index}p" "$marks" ;;
+  file)  echo "$marks" ;;
+  clear) : > "$marks"; echo "harpoon: cleared" ;;
+  list)  awk -v r="$root/" '{ p=$0; if (index(p, r) == 1) p = substr(p, length(r)+1); printf "%d. %s\n", NR, p }' "$marks" ;;
+  *)     echo "usage: hx-harpoon {add|get|file|list|clear}" >&2; exit 1 ;;
+esac

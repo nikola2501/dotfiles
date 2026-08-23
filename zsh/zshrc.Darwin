@@ -195,3 +195,7 @@ function ghprdiff(){
 export PATH="~/.bin:$PATH"
 export PATH="~/.cargo/bin:$PATH"
 export PATH="/usr/local/go/bin/go:$PATH"
+
+# --- dotfiles: shared config ---
+DOTFILES="${DOTFILES:-$HOME/repos/me/dotfiles}"
+[ -f "$DOTFILES/zsh/common.zsh" ] && source "$DOTFILES/zsh/common.zsh"

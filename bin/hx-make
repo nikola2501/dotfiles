@@ -1,0 +1,125 @@
+#!/usr/bin/env bash
+# hx-make — non-blocking build runner for the Helix quickfix workflow.
+#
+#   hx-make [command...]   start a build in the background, return immediately
+#   hx-make --path         print this project's quickfix file path
+#   hx-make --worker ROOT CMD   internal: the detached build itself
+#
+# Output is normalized to  path:row:col: message  with absolute paths — the
+# format Helix's :open parses — into a per-project file under $XDG_RUNTIME_DIR.
+#
+# Portable to macOS (bash 3.2, BSD userland) and Linux.
+
+set -uo pipefail
+
+find_root() {
+  local d=$PWD
+  while [ "$d" != "/" ]; do
+    for m in .hx-make Cargo.toml go.mod build.zig CMakeLists.txt Makefile makefile package.json ols.json .git; do
+      [ -e "$d/$m" ] && { echo "$d"; return; }
+    done
+    d=$(dirname "$d")
+  done
+  echo "$PWD"
+}
+
+qf_path() {
+  if [ -n "${HX_QUICKFIX:-}" ]; then echo "$HX_QUICKFIX"; return; fi
+  local d="${XDG_RUNTIME_DIR:-/tmp}/hx-quickfix"
+  mkdir -p "$d"
+  echo "$d/$(printf '%s' "$1" | sed 's|/|%|g').txt"
+}
+
+detect_cmd() {
+  if [ -f .hx-make ]; then
+    grep -v '^[[:space:]]*#' .hx-make | grep -v '^[[:space:]]*$' | head -1
+    return
+  fi
+  if   [ -f Cargo.toml ];      then echo "cargo build --message-format=short"
+  elif [ -f go.mod ];          then echo "go build ./..."
+  elif [ -f build.zig ];       then echo "zig build"
+  elif [ -f CMakeLists.txt ] && [ -d build ]; then echo "cmake --build build"
+  elif [ -f Makefile ] || [ -f makefile ]; then echo "make"
+  elif [ -f package.json ];    then echo "npm run build"
+  elif ls ./*.odin >/dev/null 2>&1 || [ -f ols.json ]; then echo "odin build . -debug"
+  elif ls ./*.c    >/dev/null 2>&1; then echo "cc -fsyntax-only -Wall -Wextra *.c"
+  else echo "true"
+  fi
+}
+
+# Normalize compiler output into  path:row:col: message  with absolute paths.
+#   Odin   main.odin(12:5) Error: ...   MSVC  main.c(5,10): error ...
+#   rg     path:r:c:text                gcc/clang/go/zig/cargo already fit
+normalize() {
+  sed -E \
+      -e 's/^([^ ()]+)\(([0-9]+)[:,]([0-9]+)\):?[[:space:]]*/\1:\2:\3: /' \
+      -e 's/^([^ ()]+)\(([0-9]+)\):?[[:space:]]*/\1:\2: /' \
+      -e 's/^([^ :]+:[0-9]+:[0-9]+):([^ ])/\1: \2/' \
+      -e 's/^([^ :]+:[0-9]+):([^ 0-9])/\1: \2/' \
+  | awk -v root="$1" '
+      {
+        if (match($0, /(^|[][ \t(=,])\.?\/?[^][ \t:(),]+:[0-9]+(:[0-9]+)?/)) {
+          pre  = substr($0, 1, RSTART-1)
+          tok  = substr($0, RSTART, RLENGTH)
+          rest = substr($0, RSTART+RLENGTH)
+          if (tok ~ /^[][ \t(=,]/) { pre = pre substr(tok,1,1); tok = substr(tok,2) }
+          sub(/^\.\//, "", tok)
+          if (tok !~ /^\//) tok = root "/" tok
+          print pre tok rest
+          next
+        }
+        print
+      }'
+}
+
+notify() {
+  [ -n "${TMUX:-}" ] && tmux display-message "$1" 2>/dev/null
+  if command -v notify-send >/dev/null 2>&1; then
+    notify-send -t 3000 "hx-make" "$1" 2>/dev/null
+  elif command -v osascript >/dev/null 2>&1; then   # macOS
+    osascript -e "display notification \"$1\" with title \"hx-make\"" 2>/dev/null
+  fi
+  return 0
+}
+
+# ---------------------------------------------------------------- worker mode
+if [ "${1:-}" = "--worker" ]; then
+  shift
+  root=$1; shift
+  cmd=$*
+  QF=$(qf_path "$root")
+  cd "$root" || exit 1
+  tmp="$QF.$$"
+  start=$SECONDS
+  raw=$(eval "$cmd" 2>&1); status=$?
+  took=$((SECONDS - start))
+  {
+    if [ $status -eq 0 ]; then echo "# ok  $cmd  (${took}s)"
+    else                       echo "# FAIL  $cmd  exit $status  (${took}s)"; fi
+    echo "# $root"
+    echo
+    printf '%s\n' "$raw" | normalize "$root"
+  } > "$tmp"
+  mv -f "$tmp" "$QF"
+  if [ $status -eq 0 ]; then notify "ok: $cmd (${took}s)"
+  else                       notify "FAIL: $cmd exit $status (${took}s)"; fi
+  exit 0
+fi
+
+# ---------------------------------------------------------------- front-end
+root=$(find_root)
+QF=$(qf_path "$root")
+[ "${1:-}" = "--path" ] && { echo "$QF"; exit 0; }
+cd "$root" || exit 1
+if [ $# -gt 0 ]; then cmd="$*"; else cmd=$(detect_cmd); fi
+
+{ echo "# running: $cmd"; echo "# $root"; echo; echo "(press <space>q to refresh)"; } > "$QF"
+
+# Detach so Helix's :sh — which does wait_with_output() — returns immediately.
+# The /dev/null redirects are what actually free it: the pipe hits EOF at once.
+if command -v setsid >/dev/null 2>&1; then
+  HX_QUICKFIX="$QF" setsid "$0" --worker "$root" "$cmd" </dev/null >/dev/null 2>&1 &
+else                                              # macOS has no setsid
+  HX_QUICKFIX="$QF" nohup "$0" --worker "$root" "$cmd" </dev/null >/dev/null 2>&1 &
+fi
+exit 0
