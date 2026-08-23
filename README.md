@@ -312,8 +312,11 @@ script locates per OS (`~/.config/sublime-text` on Linux,
 `installed_packages` from `User/Package Control.sublime-settings` and installs
 whatever is missing on the next launch. The list is deliberately small:
 
-`CTags` · `Debugger` · `Git blame` · `GitSavvy` · `LSP` (+ `clangd`, `gopls`,
+`Debugger` · `Git blame` · `GitSavvy` · `LSP` (+ `clangd`, `gopls`,
 `rust-analyzer`) · `Odin` · `Package Control`
+
+No CTags either — LSP does the same job from a real index rather than a tags
+file, and its `.tags` entries have been taken out of the exclude patterns.
 
 No Terminus: nothing imports it unconditionally, and the only things it carried
 were the Run/Debug code lens in Rust, the run-test lens in Go, and Debugger's

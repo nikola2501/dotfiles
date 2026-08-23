@@ -5,7 +5,6 @@
 	// Sublime's built-in Default Dark.
 	"installed_packages":
 	[
-		"CTags",
 		"Debugger",
 		"Git blame",
 		"GitSavvy",
