@@ -49,6 +49,39 @@ this repo's to own. There the rules are:
 4. Anything replaced is moved to `<name>.bak-<timestamp>` first. Nothing is ever
    deleted.
 
+## Layout
+
+| path | goes to |
+|---|---|
+| `helix/config.toml` | `~/.config/helix/config.toml` |
+| `helix/languages.toml` | `~/.config/helix/languages.toml` |
+| `helix/themes/*.toml` | `~/.config/helix/themes/` |
+| `bin/hx-*` (`make`, `harpoon`, `git`, `diff`, `jump`, `keys`) | `~/.local/bin/` |
+| the `# >>> dotfiles: helix >>>` block | appended to `~/.zshrc` |
+
+`install.sh` only manages what is listed above. The other directories
+(`tmux/`, `ghostty/`, `i3/`, `alacritty/`, `sway/`, `zellij/`, `emacs/`, `zed/`,
+`nixos/`, `claude/`, `sublime/`, `.zshrc`, `starship.toml`, `.vimrc`) are stored
+here but not linked — link them by hand, or extend `install.sh` when you want
+them automated.
+
+## Themes
+
+A theme lives in the Helix **runtime**, which is per-installation, while this
+config is shared. So a machine with an older Helix silently falls back to the
+default — there is no error message, the colours are just wrong.
+
+Any theme this config names therefore travels with it, in `helix/themes/`.
+Helix searches `$config/themes` before the runtime dirs (`application.rs` puts
+`config_dir()` at the front of the theme parent dirs), so a file there wins no
+matter which Helix build is installed.
+
+`atlas-ragnarok` is a **stock upstream theme**, added in upstream commit
+`0ca8da6c5` (2026-07-20) — nothing fork-specific about it. It is vendored here
+so it works on a machine whose Helix predates that commit.
+
+To add another theme, drop it in `helix/themes/` and re-run `install.sh`.
+
 ## Remembering the keys
 
 `<space>i` opens a cheatsheet in a buffer.
