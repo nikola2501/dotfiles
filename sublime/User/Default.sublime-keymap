@@ -1,0 +1,36 @@
+// One keymap for every platform. Sublime loads Default.sublime-keymap on all of
+// them; the per-OS Default (Linux)/(OSX) files are gone on purpose, so there is
+// one place to change a shortcut and it is the same key everywhere.
+//
+// That is only possible with function keys. The modifier keys are not portable:
+//   ctrl   primary on Linux, but macOS reserves many ctrl combos for itself
+//   super  primary on macOS (Command), the Super/Windows key on Linux where the
+//          window manager usually eats it
+//   alt    fine on Linux; on macOS it is Option and TYPES CHARACTERS —
+//          alt+d is "∂", alt+1 is "¡" — so alt bindings there insert junk
+//
+// macOS: the F-keys send brightness/volume unless "Use F1, F2, etc. keys as
+// standard function keys" is on in System Settings > Keyboard. Turn it on, or
+// hold Fn. This is the one thing to set up on a new Mac.
+//
+// Chosen because they are unbound on BOTH platforms, or bound to the same idea:
+//   f8, shift+f8, shift+f9   free on both
+//   f12                      goto_definition on both — replaced by the LSP one
+//   shift+f12                goto_reference on both — replaced by the LSP one
+// Left alone: f4/shift+f4 (next/prev build result — the quickfix keys),
+// f7 (build), f11 (full screen on Linux), f3 (find next).
+[
+    // --- LSP ---
+    { "keys": ["f8"], "command": "lsp_hover",
+      "context": [{ "key": "lsp.session_with_capability", "operator": "equal", "operand": "hoverProvider" }] },
+    { "keys": ["f12"], "command": "lsp_symbol_definition",
+      "context": [{ "key": "lsp.session_with_capability", "operator": "equal", "operand": "definitionProvider" }] },
+    { "keys": ["shift+f12"], "command": "lsp_symbol_references",
+      "context": [{ "key": "lsp.session_with_capability", "operator": "equal", "operand": "referencesProvider" }] },
+
+    // --- Build systems ---
+    { "keys": ["shift+f8"], "command": "set_build_system",
+      "args": { "file": "Packages/User/UniversalGit.sublime-build" } },
+    { "keys": ["shift+f9"], "command": "set_build_system",
+      "args": { "file": "Packages/User/Tenet.sublime-build" } },
+]

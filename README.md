@@ -328,30 +328,39 @@ No theme or colour-scheme packages: the active scheme is
 Sublime's built-in Default Dark. `--prune` moves anything not on the list into
 `Installed Packages/.removed-<timestamp>/` rather than deleting it.
 
-### Settings and keymaps per OS
-
-Sublime supports platform-specific files natively, so this uses them rather than
-inventing anything:
+### Settings and keymaps
 
 | file | scope |
 |---|---|
 | `Preferences.sublime-settings` | everything shared |
 | `Preferences (Linux/OSX).sublime-settings` | display only — font size, UI scale |
-| `Default (Linux).sublime-keymap` | Linux bindings |
-| `Default (OSX).sublime-keymap` | macOS bindings |
+| `Default.sublime-keymap` | **all platforms** — one file, same keys everywhere |
 
-**macOS modifiers**, which is where keymaps used to go wrong:
+There are deliberately no `Default (Linux)` / `Default (OSX)` keymaps. One file
+means one place to change a shortcut, and the same key on every machine.
 
-- `super` is Command — the primary modifier, as `ctrl` is on Linux
-- `ctrl` is Control, mostly reserved by macOS itself
-- `alt` is Option and **types characters** — `alt+1` is `¡`, `alt+d` is `∂`. An
-  `alt+letter` or `alt+digit` binding either does nothing or inserts junk. Never
-  bind `alt` alone on macOS; only `super+alt`.
+| key | does |
+|---|---|
+| `f8` | hover |
+| `f12` | go to definition (LSP's, replacing the built-in) |
+| `shift+f12` | find references (LSP's, replacing the built-in) |
+| `shift+f8` | switch build system to UniversalGit |
+| `shift+f9` | switch build system to Tenet |
 
-That is why hover is `f12` on macOS but `alt+d` on Linux.
+**Function keys are the only portable choice.** The modifiers are not:
 
-Do not re-bind what Sublime already gives you — that was the other source of
-confusion:
+- `ctrl` is primary on Linux, but macOS reserves many `ctrl` combos itself
+- `super` is Command on macOS, and on Linux the window manager usually eats it
+- `alt` is fine on Linux; on macOS it is Option and **types characters** —
+  `alt+d` is `∂`, `alt+1` is `¡` — so `alt` bindings there insert junk
+
+**On a new Mac, turn on "Use F1, F2, etc. keys as standard function keys"**
+(System Settings → Keyboard), or the F-keys send brightness and volume instead.
+Holding Fn works too. This is the one macOS setup step.
+
+Keys left alone because Sublime's own defaults are worth keeping: `f4` /
+`shift+f4` step through build results (the quickfix keys), `f7` builds, `f3`
+finds next, `f11` is full screen on Linux. And do not re-bind these either:
 
 | keys | does | default on |
 |---|---|---|
