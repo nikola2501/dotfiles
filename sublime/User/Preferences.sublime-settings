@@ -2,7 +2,8 @@
 	// Shared across machines. Anything that depends on the display (font size,
 	// UI scale) lives in Preferences (Linux)/(OSX).sublime-settings instead —
 	// Sublime merges those over this file automatically.
-	"ignored_packages": [],
+	"ignored_packages": [
+	],
 
 	// A local file, not a package, so it survives on any machine.
 	"color_scheme": "Packages/User/mytheme/Cyanide - Matrix.tmTheme",

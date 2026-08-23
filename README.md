@@ -312,7 +312,7 @@ script locates per OS (`~/.config/sublime-text` on Linux,
 `installed_packages` from `User/Package Control.sublime-settings` and installs
 whatever is missing on the next launch. The list is deliberately small:
 
-`Debugger` · `Git blame` · `GitSavvy` · `LSP` (+ `clangd`, `gopls`,
+`Debugger` · `Git blame` · `GitSavvy` · `Harpoon` · `LSP` (+ `clangd`, `gopls`,
 `rust-analyzer`) · `Odin` · `Package Control`
 
 No CTags either — LSP does the same job from a real index rather than a tags
@@ -346,6 +346,17 @@ means one place to change a shortcut, and the same key on every machine.
 | `shift+f12` | find references (LSP's, replacing the built-in) |
 | `shift+f8` | switch build system to UniversalGit |
 | `shift+f9` | switch build system to Tenet |
+| `ctrl+alt+a` | harpoon: mark this file (again to unmark) |
+| `ctrl+alt+1..9` | harpoon: jump to slot N |
+| `ctrl+alt+e` | harpoon: edit the mark list as a buffer |
+| `ctrl+alt+l` | harpoon: pick from a quick panel |
+| `ctrl+alt+n` / `ctrl+alt+b` | harpoon: next / previous mark |
+| `ctrl+alt+c` | harpoon: clear |
+
+The harpoon letters match the Helix side (`<space>za/ze/zl/zc`, `A-1..A-9`) so
+the muscle memory carries over. `ctrl+alt` is the one modifier pair that is free
+on both platforms and safe on macOS — with `ctrl` held, Option stops producing
+characters.
 
 **Function keys are the only portable choice.** The modifiers are not:
 

@@ -33,4 +33,25 @@
       "args": { "file": "Packages/User/UniversalGit.sublime-build" } },
     { "keys": ["shift+f9"], "command": "set_build_system",
       "args": { "file": "Packages/User/Tenet.sublime-build" } },
+
+    // --- Harpoon ---
+    // Same letters as the Helix side (<space>za/ze/zl/zc, A-1..A-9) so the
+    // muscle memory carries between editors. ctrl+alt is free on both platforms
+    // and, unlike bare alt, is safe on macOS: with ctrl held, Option stops
+    // producing characters. i3 here uses Mod4, so it does not fight for these.
+    { "keys": ["ctrl+alt+a"], "command": "harpoon_add" },
+    { "keys": ["ctrl+alt+e"], "command": "harpoon_edit" },
+    { "keys": ["ctrl+alt+l"], "command": "harpoon_list" },
+    { "keys": ["ctrl+alt+c"], "command": "harpoon_clear" },
+    { "keys": ["ctrl+alt+n"], "command": "harpoon_next" },
+    { "keys": ["ctrl+alt+b"], "command": "harpoon_prev" },
+    { "keys": ["ctrl+alt+1"], "command": "harpoon_goto", "args": { "index": 1 } },
+    { "keys": ["ctrl+alt+2"], "command": "harpoon_goto", "args": { "index": 2 } },
+    { "keys": ["ctrl+alt+3"], "command": "harpoon_goto", "args": { "index": 3 } },
+    { "keys": ["ctrl+alt+4"], "command": "harpoon_goto", "args": { "index": 4 } },
+    { "keys": ["ctrl+alt+5"], "command": "harpoon_goto", "args": { "index": 5 } },
+    { "keys": ["ctrl+alt+6"], "command": "harpoon_goto", "args": { "index": 6 } },
+    { "keys": ["ctrl+alt+7"], "command": "harpoon_goto", "args": { "index": 7 } },
+    { "keys": ["ctrl+alt+8"], "command": "harpoon_goto", "args": { "index": 8 } },
+    { "keys": ["ctrl+alt+9"], "command": "harpoon_goto", "args": { "index": 9 } },
 ]

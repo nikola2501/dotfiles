@@ -8,6 +8,8 @@
 		"Debugger",
 		"Git blame",
 		"GitSavvy",
+		"Harpoon",
+		"Harpoon",
 		"LSP",
 		"LSP-clangd",
 		"LSP-gopls",
@@ -21,4 +23,7 @@
 		"osx": ["curl", "urllib", "oscrypto"],
 		"linux": ["curl", "urllib", "oscrypto", "wget"],
 	},
+	"in_process_packages":
+	[
+	],
 }
