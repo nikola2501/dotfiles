@@ -1,0 +1,7 @@
+{
+	// Terminus is not installed, so do not ask Debugger to use it. Note that on
+	// Linux the "platform" external terminal is documented as unimplemented, so
+	// a debug adapter that insists on an external terminal will not get one
+	// here — no adapter in use does.
+	"external_terminal": "platform",
+}

@@ -19,7 +19,4 @@
       "args": { "file": "Packages/User/UniversalGit.sublime-build" } },
     { "keys": ["ctrl+alt+t"], "command": "set_build_system",
       "args": { "file": "Packages/User/Tenet.sublime-build" } },
-
-    // --- Terminus ---
-    { "keys": ["ctrl+`"], "command": "toggle_terminus_panel" },
 ]

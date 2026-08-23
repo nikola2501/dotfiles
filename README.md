@@ -313,7 +313,12 @@ script locates per OS (`~/.config/sublime-text` on Linux,
 whatever is missing on the next launch. The list is deliberately small:
 
 `CTags` · `Debugger` · `Git blame` · `GitSavvy` · `LSP` (+ `clangd`, `gopls`,
-`rust-analyzer`) · `Odin` · `Package Control` · `Terminus`
+`rust-analyzer`) · `Odin` · `Package Control`
+
+No Terminus: nothing imports it unconditionally, and the only things it carried
+were the Run/Debug code lens in Rust, the run-test lens in Go, and Debugger's
+external terminal. `User/Debugger.sublime-settings` sets `external_terminal` to
+`platform` so Debugger stops asking for it.
 
 No theme or colour-scheme packages: the active scheme is
 `User/mytheme/Cyanide - Matrix.tmTheme`, a local file, and the UI theme is

@@ -134,6 +134,15 @@ for t in "$DOTFILES"/helix/themes/*.toml; do
   link "$t" "$CONFIG_HOME/helix/themes/$(basename "$t")"
 done
 
+# A theme removed from the repo would otherwise leave a dangling symlink that
+# Helix reports as a broken theme.
+for l in "$CONFIG_HOME"/helix/themes/*.toml; do
+  [ -L "$l" ] || continue
+  t=$(readlink "$l")
+  case $t in "$DOTFILES"/helix/themes/*) [ -e "$t" ] || { run rm "$l"; say "unlink ${l##*/}  (gone from the repo)"; } ;;
+  esac
+done
+
 # ---------------------------------------------------------------- zsh
 # Your ~/.zshrc is yours. We never replace it, never symlink it, and never move
 # it aside — we append one marked block and rewrite only that block on re-runs.

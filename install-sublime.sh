@@ -116,6 +116,22 @@ find "$SRC" -type f | sort | while read -r src; do
   link "$src" "$DST/$rel"
 done
 
+# --------------------------------------------------- drop links we orphaned
+# A file removed from the repo leaves a dangling symlink behind, which Sublime
+# then reports as a missing resource. Only links pointing into this repo are
+# touched; anything else in User/ is not ours to remove.
+find "$DST" -type l 2>/dev/null | while read -r l; do
+  t=$(readlink "$l") || continue
+  case $t in "$SRC"/*) ;; *) continue ;; esac
+  [ -e "$t" ] && continue
+  run rm "$l"
+  say "unlink ${l#$DST/}  (gone from the repo)"
+done
+# and the empty directories those links may leave
+find "$DST" -type d -empty -not -path "$DST" 2>/dev/null | while read -r d; do
+  run rmdir "$d" 2>/dev/null && say "rmdir  ${d#$DST/}"
+done
+
 # ---------------------------------------------------------------- prune
 if [ "$PRUNE" -eq 1 ]; then
   echo
