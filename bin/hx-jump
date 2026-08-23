@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+# hx-jump <file> <line> — work out what the given line of the given buffer
+# points at, and print it as  path:row[:col]  for Helix's :open.
+#
+# Two kinds of buffer, decided by looking at the content:
+#
+#   a unified diff   resolve the position INSIDE the diff to the real file and
+#                    line — works on a +, a context line, a - line, or the @@
+#                    header itself
+#   anything else    pull the first path:row[:col] off the line (quickfix,
+#                    hx-git lists, logs, stack traces, git grep output, ...)
+#
+# Portable to macOS (bash 3.2, BSD userland) and Linux.
+
+set -uo pipefail
+
+file=${1:?need a file}
+line=${2:?need a line number}
+[ -r "$file" ] || exit 0
+
+is_diff() {
+  # look past our own header comments; a real diff announces itself early
+  head -n 400 "$1" | grep -qE '^(diff --git |@@ -[0-9]+)' 
+}
+
+if is_diff "$file"; then
+  # Paths in a diff are relative to the repo root. hx-diff records it; for a
+  # patch from elsewhere fall back to the repo we are standing in.
+  root=$(sed -n 's/^# root: //p' "$file" | head -1)
+  [ -z "$root" ] && root=$(git rev-parse --show-toplevel 2>/dev/null)
+  [ -z "$root" ] && root=$(dirname "$file")
+
+  awk -v want="$line" -v root="$root" '
+    function out(f, n) {
+      if (f == "" || f == "/dev/null") exit
+      if (f !~ /^\//) f = root "/" f
+      printf "%s:%d\n", f, (n < 1 ? 1 : n)
+      exit
+    }
+    # +++ carries the new-side name; --- is the old side and is not a target
+    /^\+\+\+ /   { f=$0; sub(/^\+\+\+ (b\/)?/, "", f); new=0
+                   if (NR == want) out(f, 1)
+                   next }
+    /^--- /      { if (NR == want) out(f, 1); next }
+    # a new file section: forget the previous one, or its name and line
+    # counter leak into this file'"'"'s index/--- header lines
+    /^diff --git / { if (NR == want) { p=$0; sub(/.* b\//, "", p); out(p, 1) }
+                     f=""; new=0; next }
+    /^@@ /       { p=$3; sub(/^\+/, "", p); sub(/,.*/, "", p); new=p+0
+                   if (NR == want) out(f, new)
+                   next }
+    {
+      if (new == 0) next                      # still in the header
+      c = substr($0, 1, 1)
+      if (c == "\\") next                     # "\ No newline at end of file"
+      if (c == "-") { if (NR == want) out(f, new); next }   # deleted: land where it was
+      if (NR == want) out(f, new)             # context or addition: this is the line
+      new++
+    }' "$file"
+  exit 0
+fi
+
+sed -n "${line}p" "$file" | grep -oE '[^][ :(),]+:[0-9]+(:[0-9]+)?' | head -1
+exit 0

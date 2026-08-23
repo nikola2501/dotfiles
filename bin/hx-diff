@@ -1,0 +1,97 @@
+#!/usr/bin/env bash
+# hx-diff — a real unified diff in a Helix buffer, for reading a change.
+#
+#   hx-diff changed        vs HEAD, staged and unstaged both
+#   hx-diff review [ref]   vs the merge-base with ref (default main/master)
+#   hx-diff commit <sha>   one commit
+#   hx-diff --path         print the output file
+#   hx-diff --raw <mode>   print the plain diff to stdout (for piping to delta)
+#
+# The output file ends in .diff, so Helix highlights it with tree-sitter-diff
+# through your theme. hx-jump resolves any position inside it back to the real
+# file and line, so A-ret works from anywhere in the diff — a + line, a context
+# line, a - line, or the @@ header itself.
+#
+# Context lines: $HX_DIFF_CONTEXT (default 5; review reading wants more than
+# git's default 3).
+#
+# Portable to macOS (bash 3.2, BSD userland) and Linux.
+
+set -uo pipefail
+
+root=$(git rev-parse --show-toplevel 2>/dev/null) || {
+  echo "hx-diff: not a git repository" >&2; exit 1; }
+g() { git -C "$root" -c core.quotepath=false "$@"; }
+
+out_path() {
+  if [ -n "${HX_DIFF_OUT:-}" ]; then echo "$HX_DIFF_OUT"; return; fi
+  local d="${XDG_RUNTIME_DIR:-/tmp}/hx-quickfix"
+  mkdir -p "$d"
+  echo "$d/$(printf '%s' "$root" | sed 's|/|%|g').diff"
+}
+OUT=$(out_path)
+[ "${1:-}" = "--path" ] && { echo "$OUT"; exit 0; }
+
+# --raw: no header, straight to stdout. delta renders ANSI colour, which a Helix
+# buffer cannot show — so that path is for a terminal (a tmux popup), not the
+# editor. In the editor the same diff is highlighted by tree-sitter instead.
+RAW=0
+if [ "${1:-}" = "--raw" ]; then RAW=1; shift; OUT=/dev/stdout; fi
+
+CTX=${HX_DIFF_CONTEXT:-5}
+
+base_ref() {
+  [ -n "${1:-}" ] && { echo "$1"; return; }
+  local h
+  if h=$(g rev-parse --abbrev-ref origin/HEAD 2>/dev/null); then
+    case $h in */*) echo "$h"; return ;; esac
+  fi
+  local c
+  for c in origin/main origin/master main master; do
+    g rev-parse --verify --quiet "$c" >/dev/null 2>&1 && { echo "$c"; return; }
+  done
+  echo ""
+}
+
+# `# root:` is how hx-jump turns the diff's relative paths into real ones.
+# tree-sitter-diff treats # as a comment, so it does not disturb highlighting.
+emit() {
+  [ "$RAW" -eq 1 ] && return 0
+  local title=$1; shift
+  { echo "# $title"
+    echo "# root: $root"
+    echo "#"
+    if [ -n "${1:-}" ]; then printf '%s\n' "$1" | sed 's/^/# /'; echo "#"; fi
+  } > "$OUT"
+}
+
+case "${1:-changed}" in
+  changed)
+    stat=$(g diff HEAD --stat=120 | tail -1)
+    emit "uncommitted changes vs HEAD" "$stat"
+    g diff HEAD "-U$CTX" >> "$OUT"
+    ;;
+  review)
+    shift
+    ref=$(base_ref "${1:-}")
+    [ -z "$ref" ] && { emit "no base branch found — try: hx-diff review <ref>" ""; exit 0; }
+    mb=$(g merge-base "$ref" HEAD 2>/dev/null)
+    [ -z "$mb" ] && { emit "no common ancestor with $ref" ""; exit 0; }
+    # no ...HEAD: uncommitted work is part of "how this branch differs"
+    stat=$(g diff "$mb" --stat=120 | tail -1)
+    emit "review: this branch vs $ref (merge-base ${mb%${mb#?????????}})" "$stat"
+    g diff "$mb" "-U$CTX" >> "$OUT"
+    ;;
+  commit)
+    shift
+    sha=${1:?need a commit}
+    subject=$(g log -1 --format='%h %s' "$sha" 2>/dev/null) || { emit "no such commit: $sha" ""; exit 0; }
+    emit "commit $subject" "$(g show --stat=120 --format= "$sha" | tail -1)"
+    g show "-U$CTX" --format= "$sha" >> "$OUT"
+    ;;
+  *) echo "usage: hx-diff {changed|review [ref]|commit <sha>|--path}" >&2; exit 1 ;;
+esac
+
+# An empty diff leaves just the header, which reads as "nothing to see".
+[ "$RAW" -eq 0 ] && [ "$(wc -l < "$OUT" | tr -d ' ')" -le 4 ] && echo "# (no changes)" >> "$OUT"
+exit 0

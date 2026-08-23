@@ -118,6 +118,56 @@ to the `-` line for a pure deletion, falling back to git's `xfuncname` context.
 Deleted files show up under `<space>vs` but not in the line lists — there is no
 line left to jump to.
 
+### Reviewing a change
+
+Helix has **no diff mode** — there is no `:diffthis`, no vimdiff equivalent. But
+it does ship a tree-sitter `diff` grammar with `@diff.plus` / `@diff.minus`
+highlights for `.diff`, `.patch` and `.rej`, so a diff written to a `.diff` file
+and opened in a buffer is properly coloured through your theme.
+
+| key | shows |
+|---|---|
+| `<space>vd` | the diff vs HEAD |
+| `<space>vr` | the diff vs the merge-base — **this is the PR review one** |
+| `<space>vp` | the same review diff in a tmux popup through `delta` |
+
+`A-ret` works from **anywhere inside the diff** — a `+` line, a context line, a
+`-` line, or the `@@` header. It resolves the position back to the real file and
+line, so you land in the actual buffer with LSP and the whole repo around you.
+A `-` line lands where the deleted line used to be.
+
+Reviewing a PR locally:
+
+```sh
+gh pr checkout 123
+```
+
+then `<space>vr` in Helix. Everything is your working tree, so goto-definition,
+references and diagnostics all work while you read.
+
+Context lines default to 5 (git's default 3 is thin for reading); override with
+`HX_DIFF_CONTEXT`.
+
+#### On delta
+
+`delta` renders ANSI colour, and a Helix buffer displays text, not ANSI — piping
+delta into a buffer shows literal `ESC[38;2;...` escapes. So delta cannot be the
+in-editor viewer. It is excellent in a terminal, which is what `<space>vp` is
+for: `hx-diff --raw review | delta` inside a tmux popup. Read there, jump here.
+
+### Lists vs the diff
+
+Both exist because they answer different questions:
+
+- `<space>vs` / `<space>vc` / `<space>vb` — **lists**. Compact, one line per
+  change, fast to walk with `n`/`N` and jump from. "What did I touch."
+- `<space>vd` / `<space>vr` — **the diff itself**. Surrounding context, what the
+  code looked like before. "Is this change right."
+
+`A-ret` is the same key in both. `hx-jump` looks at the buffer and decides:
+a unified diff gets the position resolved inside it, anything else gets the
+first `path:row[:col]` pulled off the line.
+
 ### Build commands
 
 `hx-make` walks up to the project root and picks a command:

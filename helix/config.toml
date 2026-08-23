@@ -62,20 +62,28 @@ mode.select = "SELECT"
 # <space>m : build (auto-detected) into the quickfix buffer
 # <space>M : same, but keep the cursor where it is
 # <space>q : refresh / reopen the quickfix buffer
-# A-ret    : open the path:row:col on the current line (works in ANY saved buffer)
+# A-ret    : jump to what the current line points at — a path:row:col in a
+#            list, or a position inside a unified diff. Any saved buffer.
 space.m = [":sh hx-make", ":open %sh{hx-make --path}", ":reload", "goto_file_start"]
 space.M = [":sh hx-make", ":open %sh{hx-make --path}", ":reload"]
 space.q = [":open %sh{hx-make --path}", ":reload"]
-"A-ret" = ":open %sh{sed -n \"%{cursor_line}p\" \"%{file_path_absolute}\" | grep -oE '[^][ :(),]+:[0-9]+(:[0-9]+)?' | head -1}"
+"A-ret" = ":open %sh{hx-jump \"%{file_path_absolute}\" %{cursor_line}}"
 
 # --- git changes as a jumpable buffer ---
 # <space>vs : which FILES changed        ("what am I working on")
 # <space>vc : which LINES changed vs HEAD, staged and unstaged both
 # <space>vb : which LINES changed vs the merge-base with main/master
+# <space>vd : the DIFF vs HEAD          <space>vr : the DIFF vs merge-base (PR review)
 # A-ret jumps from any of them, same as from the quickfix buffer.
 space.v.s = [":sh hx-git status",  ":open %sh{hx-git --path}", ":reload", "goto_file_start"]
 space.v.c = [":sh hx-git changed", ":open %sh{hx-git --path}", ":reload", "goto_file_start"]
 space.v.b = [":sh hx-git branch",  ":open %sh{hx-git --path}", ":reload", "goto_file_start"]
+# the actual diff, syntax-highlighted, for reading a change rather than listing it
+space.v.d = [":sh hx-diff changed", ":open %sh{hx-diff --path}", ":reload", "goto_file_start"]
+space.v.r = [":sh hx-diff review",  ":open %sh{hx-diff --path}", ":reload", "goto_file_start"]
+# delta emits ANSI colour, which a Helix buffer cannot render — so it goes in a
+# tmux popup, for reading only. Use <space>vr when you want to jump into code.
+space.v.p = ":sh tmux popup -d \"#{pane_current_path}\" -xC -yC -w95%% -h95%% -E 'hx-diff --raw review | delta --paging=always'"
 
 # --- harpoon: per-project pinned files ---
 # <space>za pin current file+line   <space>ze edit the pin list as a buffer
