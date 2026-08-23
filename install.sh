@@ -1,15 +1,16 @@
 #!/usr/bin/env bash
 # install.sh — set this machine up from these dotfiles. Linux and macOS.
 #
-#   ./install.sh              symlink helix config, .zshrc and the bin/ scripts
+#   ./install.sh              symlink the helix config and the bin/ scripts
 #   ./install.sh --helix      also clone+build the Helix fork and enable `hxp`
 #   ./install.sh --uninstall  remove the symlinks and restore the newest backups
 #   ./install.sh --dry-run    show what would happen, change nothing
 #   ./install.sh --force      replace differing files without asking
 #
-# Everything is symlinked, never copied — so editing ~/.zshrc edits this repo and
-# the two can never drift apart. Any real file already in the way is backed up
-# first, never overwritten.
+# Your ~/.zshrc is never replaced. The installer only appends one small marked
+# block to it (PATH + the `h` alias) and rewrites just that block on re-runs.
+# The helix config and the bin/ scripts are symlinked; anything real already in
+# the way is backed up first, never overwritten.
 
 set -euo pipefail
 
@@ -91,7 +92,15 @@ if [ "$UNINSTALL" -eq 1 ]; then
   echo; echo "  removing symlinks"; echo
   unlink_one "$CONFIG_HOME/helix/config.toml"
   unlink_one "$CONFIG_HOME/helix/languages.toml"
-  unlink_one "$HOME/.zshrc"
+  if [ -f "$HOME/.zshrc" ] && grep -qF "# >>> dotfiles: helix >>>" "$HOME/.zshrc"; then
+    run cp "$HOME/.zshrc" "$HOME/.zshrc.bak-$STAMP"
+    if [ "$DRY" -eq 0 ]; then
+      awk -v b="# >>> dotfiles: helix >>>" -v e="# <<< dotfiles: helix <<<" '
+        $0 == b { skip = 1 } !skip { print } $0 == e { skip = 0 }' \
+        "$HOME/.zshrc" > "$HOME/.zshrc.hx.$$" && mv "$HOME/.zshrc.hx.$$" "$HOME/.zshrc"
+    fi
+    say "removed the helix block from ~/.zshrc (backup alongside)"
+  fi
   unlink_one "$BIN/hx-make"
   unlink_one "$BIN/hx-harpoon"
   echo; say "done"; echo
@@ -108,14 +117,50 @@ link "$DOTFILES/helix/config.toml"    "$CONFIG_HOME/helix/config.toml"
 link "$DOTFILES/helix/languages.toml" "$CONFIG_HOME/helix/languages.toml"
 
 # ---------------------------------------------------------------- zsh
-# The Linux and macOS shells genuinely differ (paths, oh-my-zsh, app locations),
-# so each OS gets its own file and the shared parts live in zsh/common.zsh.
-ZSHRC="$DOTFILES/zsh/zshrc.$OS"
-if [ -e "$ZSHRC" ]; then
-  link "$ZSHRC" "$HOME/.zshrc"
+# Your ~/.zshrc is yours. We never replace it, never symlink it, and never move
+# it aside — we append one marked block and rewrite only that block on re-runs.
+ZSHRC="$HOME/.zshrc"
+BEGIN_MARK="# >>> dotfiles: helix >>>"
+END_MARK="# <<< dotfiles: helix <<<"
+
+zsh_block() {
+  cat <<'BLOCK'
+# >>> dotfiles: helix >>>
+# Added by dotfiles/install.sh. Edit the installer, not this block — it is
+# rewritten in place on every run. Delete it by hand or with --uninstall.
+export PATH="$HOME/.local/bin:$PATH"          # hx-make, hx-harpoon
+HELIX_FORK="${HELIX_FORK:-$HOME/repos/me/helix-plugin}"
+if [ -x "$HELIX_FORK/target/opt/hx" ]; then
+  alias h="HELIX_RUNTIME=$HELIX_FORK/runtime $HELIX_FORK/target/opt/hx"
+fi
+# <<< dotfiles: helix <<<
+BLOCK
+}
+
+if [ "$DRY" -eq 1 ]; then
+  if [ -f "$ZSHRC" ] && grep -qF "$BEGIN_MARK" "$ZSHRC"; then
+    say "[dry-run] would rewrite the helix block in $ZSHRC"
+  else
+    say "[dry-run] would append the helix block to $ZSHRC"
+  fi
 else
-  say "SKIP  ~/.zshrc  (no zsh/zshrc.$OS in this repo yet)"
-  say "      create it with:  cp ~/.zshrc $DOTFILES/zsh/zshrc.$OS"
+  touch "$ZSHRC"
+  if grep -qF "$BEGIN_MARK" "$ZSHRC"; then
+    tmp="$ZSHRC.hx.$$"
+    awk -v b="$BEGIN_MARK" -v e="$END_MARK" '
+      $0 == b { skip = 1 }
+      !skip   { print }
+      $0 == e { skip = 0 }' "$ZSHRC" > "$tmp"
+    # drop a trailing run of blank lines left behind, then re-append
+    awk 'BEGIN{n=0} {lines[NR]=$0} END{last=NR; while(last>0 && lines[last]~/^[ \t]*$/) last--; for(i=1;i<=last;i++) print lines[i]}' "$tmp" > "$tmp.2"
+    mv "$tmp.2" "$tmp"
+    { cat "$tmp"; echo; zsh_block; } > "$ZSHRC"
+    rm -f "$tmp"
+    say "zshrc updated the helix block in $ZSHRC"
+  else
+    { echo; zsh_block; } >> "$ZSHRC"
+    say "zshrc appended the helix block to $ZSHRC (nothing else touched)"
+  fi
 fi
 
 # ---------------------------------------------------------------- scripts
@@ -166,7 +211,7 @@ cat <<'EOT'
 
   Done. Open a new shell.
 
-    hxp                 the Helix fork (after --helix)
+    h                   the Helix fork (after --helix)
     <space>m  A-ret     build into the quickfix buffer, jump to an error
     <space>za A-1..A-9  pin a file, jump to a pin
 
