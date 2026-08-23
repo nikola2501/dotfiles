@@ -88,6 +88,36 @@ through tmux. Helix also has no "go to buffer N" command at all — only
 `buffer-next`/`buffer-previous` — and buffer indices shift as you open and close
 files, whereas pinned slots are stable.
 
+### Git changes
+
+| key | shows |
+|---|---|
+| `<space>vs` | which **files** changed — "what am I working on" |
+| `<space>vc` | which **lines** changed vs HEAD, staged and unstaged both |
+| `<space>vb` | which **lines** changed vs the merge-base with main/master |
+
+`A-ret` jumps from these exactly as it does from the quickfix buffer — same key,
+same list, no separate diff mode to learn.
+
+Two granularities because they answer different questions: files for "what am I
+touching", lines for "what did I actually do".
+
+`<space>vb` diffs against the **merge-base**, not against main itself. That is
+the whole trick — you see your branch's changes, not everything that landed on
+main since you branched. It does not use `...HEAD` either, so uncommitted work
+counts: before you push, "different from main" includes what you have not
+committed yet. Override the base with `:sh hx-git branch some-ref`.
+
+The mechanism is `git diff -U0`. With zero context lines every hunk header is
+exactly one change and the `+N` in it **is** the line to jump to, so nothing has
+to work out a position inside a diff — the output is plain `path:row: text`,
+which is why the existing jump binding needed no changes at all. Each entry
+shows the `+` line (what is in the file you are about to land in), falling back
+to the `-` line for a pure deletion, falling back to git's `xfuncname` context.
+
+Deleted files show up under `<space>vs` but not in the line lists — there is no
+line left to jump to.
+
 ### Build commands
 
 `hx-make` walks up to the project root and picks a command:

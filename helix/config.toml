@@ -68,6 +68,15 @@ space.M = [":sh hx-make", ":open %sh{hx-make --path}", ":reload"]
 space.q = [":open %sh{hx-make --path}", ":reload"]
 "A-ret" = ":open %sh{sed -n \"%{cursor_line}p\" \"%{file_path_absolute}\" | grep -oE '[^][ :(),]+:[0-9]+(:[0-9]+)?' | head -1}"
 
+# --- git changes as a jumpable buffer ---
+# <space>vs : which FILES changed        ("what am I working on")
+# <space>vc : which LINES changed vs HEAD, staged and unstaged both
+# <space>vb : which LINES changed vs the merge-base with main/master
+# A-ret jumps from any of them, same as from the quickfix buffer.
+space.v.s = [":sh hx-git status",  ":open %sh{hx-git --path}", ":reload", "goto_file_start"]
+space.v.c = [":sh hx-git changed", ":open %sh{hx-git --path}", ":reload", "goto_file_start"]
+space.v.b = [":sh hx-git branch",  ":open %sh{hx-git --path}", ":reload", "goto_file_start"]
+
 # --- harpoon: per-project pinned files ---
 # <space>za pin current file+line   <space>ze edit the pin list as a buffer
 # <space>zl list                    <space>zc clear

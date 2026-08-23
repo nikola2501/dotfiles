@@ -1,0 +1,118 @@
+#!/usr/bin/env bash
+# hx-git — git changes as a jumpable buffer for Helix.
+#
+#   hx-git status         which FILES changed      ("what am I working on")
+#   hx-git changed        which LINES changed vs HEAD, staged and unstaged both
+#   hx-git branch [ref]   which LINES changed vs the merge-base with ref
+#   hx-git --path         print the output file
+#
+# Output is  path:row: text  with absolute paths — the same format hx-make
+# produces — so the existing A-ret binding jumps from it unchanged.
+#
+# The trick is `git diff -U0`: with no context lines every hunk header is
+# exactly one change and the +N in it IS the line to jump to, so nothing has
+# to work out a position inside the diff.
+#
+# Portable to macOS (bash 3.2, BSD userland) and Linux.
+
+set -uo pipefail
+
+# `git rev-parse` rather than walking up looking for a .git directory: inside a
+# worktree or a submodule .git is a FILE, and only git knows the real root.
+root=$(git rev-parse --show-toplevel 2>/dev/null) || {
+  echo "hx-git: not a git repository" >&2; exit 1; }
+
+# core.quotepath=false so a non-ASCII path arrives as itself rather than as
+# \303\251 escapes, which no later parsing recovers.
+g() { git -C "$root" -c core.quotepath=false "$@"; }
+
+out_path() {
+  if [ -n "${HX_GIT_OUT:-}" ]; then echo "$HX_GIT_OUT"; return; fi
+  local d="${XDG_RUNTIME_DIR:-/tmp}/hx-quickfix"
+  mkdir -p "$d"
+  echo "$d/$(printf '%s' "$root" | sed 's|/|%|g').git.txt"
+}
+OUT=$(out_path)
+[ "${1:-}" = "--path" ] && { echo "$OUT"; exit 0; }
+
+# The branch this one grew from. Diffing against the merge-base rather than the
+# base branch itself is the whole point: you see YOUR changes, not everything
+# that landed on main since you branched.
+base_ref() {
+  [ -n "${1:-}" ] && { echo "$1"; return; }
+  # the exit status matters: with no remote, rev-parse still prints the literal
+  # string "origin/HEAD", which looks like a valid ref but is not one
+  local h
+  if h=$(g rev-parse --abbrev-ref origin/HEAD 2>/dev/null); then
+    case $h in */*) echo "$h"; return ;; esac
+  fi
+  local c
+  for c in origin/main origin/master main master; do
+    g rev-parse --verify --quiet "$c" >/dev/null 2>&1 && { echo "$c"; return; }
+  done
+  echo ""
+}
+
+# Turn `git diff -U0` into  path:row: text  lines.
+parse_diff() {
+  awk -v root="$root" '
+    function trim(s) { sub(/^[ \t]+/, "", s); sub(/[ \t]+$/, "", s); return s }
+    /^\+\+\+ /                { f=$0; sub(/^\+\+\+ (b\/)?/, "", f); want=0; next }
+    /^@@ /                    {
+      if (f == "" || f == "/dev/null") { want=0; next }
+      p=$3; sub(/^\+/, "", p); sub(/,.*/, "", p)
+      ln=p+0; if (ln < 1) ln=1
+      # git puts the enclosing function (xfuncname) after the second @@ —
+      # the fallback text for a hunk with no line worth quoting
+      q=index(substr($0, 3), "@@")
+      ctx=(q > 0) ? trim(substr($0, q+4)) : ""
+      n++; file[n]=f; line[n]=ln; con[n]=ctx; txt[n]=""
+      want=n; next
+    }
+    want == 0                 { next }
+    /^(\+\+\+|---)/           { next }
+    # A modification is a - line then a + line. Show the +: that is what is in
+    # the file you are about to jump into, so list and buffer agree. The -
+    # only stands when the hunk deletes and adds nothing.
+    /^\+/                     { txt[want]=trim(substr($0, 2)); want=0; next }
+    /^-/                      { if (txt[want] == "") txt[want]=trim(substr($0, 2)); next }
+    END {
+      for (i = 1; i <= n; i++)
+        printf "%s/%s:%d: %s\n", root, file[i], line[i], (txt[i] != "" ? txt[i] : con[i])
+    }'
+}
+
+write() { printf '%s\n' "$1" > "$OUT"; shift; [ $# -gt 0 ] && printf '%s\n' "$@" >> "$OUT"; }
+
+case "${1:-changed}" in
+  status)
+    body=$(g status --porcelain | awk -v root="$root" '
+      length($0) >= 4 {
+        code=substr($0, 1, 2); path=substr($0, 4)
+        # a rename carries both names; the new one is where the code is now
+        if (match(path, /.*-> */)) path=substr(path, RSTART+RLENGTH)
+        printf "%s/%s:1: %s\n", root, path, code
+      }')
+    if [ -z "$body" ]; then write "# working tree clean" "# $root"
+    else write "# git status  ($(printf '%s\n' "$body" | wc -l | tr -d ' ') files)" "# $root" "" "$body"; fi
+    ;;
+  changed)
+    body=$(g diff HEAD -U0 | parse_diff)
+    if [ -z "$body" ]; then write "# nothing changed since HEAD" "# $root"
+    else write "# changed lines vs HEAD  ($(printf '%s\n' "$body" | wc -l | tr -d ' ') hunks)" "# $root" "" "$body"; fi
+    ;;
+  branch)
+    shift
+    ref=$(base_ref "${1:-}")
+    [ -z "$ref" ] && { write "# no base branch found — try: hx-git branch <ref>" "# $root"; exit 0; }
+    mb=$(g merge-base "$ref" HEAD 2>/dev/null)
+    [ -z "$mb" ] && { write "# no common ancestor with $ref" "# $root"; exit 0; }
+    # no ...HEAD: the working tree counts too. Before you push, "different from
+    # main" includes what you have not committed yet.
+    body=$(g diff "$mb" -U0 | parse_diff)
+    if [ -z "$body" ]; then write "# nothing changed vs $ref" "# $root"
+    else write "# changed lines vs $ref  ($(printf '%s\n' "$body" | wc -l | tr -d ' ') hunks)" "# $root  (merge-base ${mb:0:9})" "" "$body"; fi
+    ;;
+  *) echo "usage: hx-git {status|changed|branch [ref]|--path}" >&2; exit 1 ;;
+esac
+exit 0
