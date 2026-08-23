@@ -7,13 +7,43 @@ git clone https://github.com/nikola2501/dotfiles.git ~/repos/me/dotfiles
 ~/repos/me/dotfiles/install.sh
 ```
 
-Add `--helix` to also clone and build the Helix fork and enable `hxp`.
-Add `--dry-run` first if you want to see what it would touch.
+| flag | |
+|---|---|
+| `--dry-run` | show what would happen, change nothing. Run this first. |
+| `--helix` | also clone and build the Helix fork, enabling `hxp` |
+| `--force` | replace differing files without asking |
+| `--uninstall` | remove the symlinks and restore the newest backups |
 
-Everything is **symlinked, never copied** — editing `~/.zshrc` edits this repo,
-so the two cannot drift apart. Any real file already in the way is moved to
-`<name>.bak-<timestamp>` first; nothing is overwritten. `--uninstall` removes the
-symlinks and restores the newest backup.
+Needs `git`. `--helix` also needs `cargo`. The scripts need `awk`, `sed`, `grep`.
+
+**`--helix` is not quick:** the Rust build takes a few minutes, and fetching and
+building the ~300 tree-sitter grammars takes longer and lands about **2.4 GB** in
+`runtime/grammars`. Don't start it on a tethered connection.
+
+## What it does to your files
+
+It does **not** append lines to your config. It **takes ownership of whole
+files**: `~/.zshrc` stops being a file and becomes a symlink into this repo.
+That is the point — a copy can go stale, a symlink cannot.
+
+Guard rails, in order:
+
+1. If the target is already the right symlink, nothing happens (`ok`).
+2. If the target is a real file **identical** to the repo's, it is replaced —
+   nothing to lose.
+3. If the target is a real file that **differs**, it says so with a line count
+   and **asks** before touching it. Not a terminal (CI, a pipe)? It skips and
+   tells you how to compare. `--force` skips the question.
+4. Whatever gets replaced is moved to `<name>.bak-<timestamp>` first. Nothing is
+   ever deleted. `--uninstall` puts the newest backup back.
+
+So on a second machine whose `~/.zshrc` has drifted from `zsh/zshrc.Darwin`, the
+installer stops and asks rather than silently reverting you. If your live file is
+the better one, copy it into the repo first:
+
+```sh
+cp ~/.zshrc ~/repos/me/dotfiles/zsh/zshrc.$(uname -s)
+```
 
 ## Layout
 

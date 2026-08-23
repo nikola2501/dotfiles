@@ -5,6 +5,7 @@
 #   ./install.sh --helix      also clone+build the Helix fork and enable `hxp`
 #   ./install.sh --uninstall  remove the symlinks and restore the newest backups
 #   ./install.sh --dry-run    show what would happen, change nothing
+#   ./install.sh --force      replace differing files without asking
 #
 # Everything is symlinked, never copied — so editing ~/.zshrc edits this repo and
 # the two can never drift apart. Any real file already in the way is backed up
@@ -19,13 +20,14 @@ HELIX_FORK="${HELIX_FORK:-$HOME/repos/me/helix-plugin}"
 FORK_URL="https://github.com/nikola2501/helix-plugin.git"
 OS=$(uname -s)
 STAMP=$(date +%Y%m%d-%H%M%S)
-DO_HELIX=0; UNINSTALL=0; DRY=0
+DO_HELIX=0; UNINSTALL=0; DRY=0; FORCE=0
 
 while [ $# -gt 0 ]; do
   case $1 in
     --helix)     DO_HELIX=1 ;;
     --uninstall) UNINSTALL=1 ;;
     --dry-run)   DRY=1 ;;
+    --force)     FORCE=1 ;;
     -h|--help)   sed -n '2,12p' "$0"; exit 0 ;;
     *) echo "unknown option: $1" >&2; exit 1 ;;
   esac
@@ -41,6 +43,28 @@ link() {
   [ -e "$src" ] || { say "SKIP  $dst  (missing in repo: ${src#$DOTFILES/})"; return; }
   if [ -L "$dst" ] && [ "$(readlink "$dst")" = "$src" ]; then
     say "ok    $dst"; return
+  fi
+  # A real file that differs from the repo version is the dangerous case: linking
+  # would silently swap in whatever the repo last had. Ask before doing that.
+  if [ -e "$dst" ] && [ ! -L "$dst" ] && ! cmp -s "$dst" "$src"; then
+    local n; n=$(diff "$dst" "$src" 2>/dev/null | grep -c '^[<>]' || true)
+    say "DIFFERS  $dst"
+    say "         the copy here differs from ${src#$DOTFILES/} by $n lines"
+    if [ "$FORCE" -eq 1 ]; then
+      say "         --force: replacing (the current file is backed up)"
+    elif [ "$DRY" -eq 1 ]; then
+      say "         would ask before replacing"
+    elif [ -t 0 ]; then
+      printf '         replace it? it is backed up either way [y/N] '
+      local ans; read -r ans
+      case $ans in [yY]*) ;; *) say "         kept $dst as it is"; return ;; esac
+    else
+      say "         SKIPPED (not a terminal). Compare them first:"
+      say "           diff $dst $src"
+      say "         then re-run with --force, or copy yours into the repo:"
+      say "           cp $dst $src"
+      return
+    fi
   fi
   run mkdir -p "$(dirname "$dst")"
   if [ -e "$dst" ] || [ -L "$dst" ]; then
