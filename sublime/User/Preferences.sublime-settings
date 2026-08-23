@@ -1,15 +1,21 @@
 {
-	"ignored_packages":
-	[
-		"Vintage",
-	],
+	// Shared across machines. Anything that depends on the display (font size,
+	// UI scale) lives in Preferences (Linux)/(OSX).sublime-settings instead —
+	// Sublime merges those over this file automatically.
+	"ignored_packages": [],
+
+	// A local file, not a package, so it survives on any machine.
+	"color_scheme": "Packages/User/mytheme/Cyanide - Matrix.tmTheme",
+	"theme": "Default Dark.sublime-theme",
+
 	"index_files": true,
-	"color_scheme": "Packages/Theme - Cyanide/Cyanide - Matrix.tmTheme",
 	"highlight_line": true,
-	"font_size": 14,
-	"ui_scale": 1.2,
-	"theme": "Cyanide - Matrix.sublime-theme",
-	"relative_line_numbers": true,
-	"block_caret": true,
+	"relative_line_numbers": false,
+	"block_caret": false,
 	"caret_style": "blink",
+
+	"folder_exclude_patterns": [".svn", ".git", ".hg", "CVS", ".Trash", ".Trash-*"],
+	"file_exclude_patterns": ["*.pyc", "*.pyo", "*.exe", "*.dll", "*.obj", "*.o", "*.a", "*.lib", "*.so", "*.dylib", "*.ncb", "*.sdf", "*.suo", "*.pdb", "*.idb", ".DS_Store", ".directory", "desktop.ini", "*.class", "*.psd", "*.db", "*.sublime-workspace", ".tags", ".tags_*", "go.stdtags"],
+	"binary_file_patterns": ["*.jpg", "*.jpeg", "*.png", "*.gif", "*.ttf", "*.tga", "*.dds", "*.ico", "*.eot", "*.pdf", "*.swf", "*.jar", "*.zip", ".tags", ".tags_*", "go.stdtags"],
+	"index_exclude_patterns": ["*.log", ".tags", ".tags_*", "go.stdtags"],
 }

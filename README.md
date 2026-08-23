@@ -1,10 +1,18 @@
 # dotfiles
 
-Config for Linux and macOS. One command sets a machine up.
+Config for Linux and macOS. Two installers, one per editor:
+
+| script | sets up |
+|---|---|
+| `install-helix.sh` | Helix config, themes, the `hx-*` scripts, the `h` alias |
+| `install-sublime.sh` | Sublime Text's `User/` config and package list |
+
+Both symlink rather than copy, back up anything in the way, and ask before
+replacing a file that differs from the repo's copy.
 
 ```sh
 git clone https://github.com/nikola2501/dotfiles.git ~/repos/me/dotfiles
-~/repos/me/dotfiles/install.sh
+~/repos/me/dotfiles/install-helix.sh
 ```
 
 | flag | |
@@ -57,12 +65,13 @@ this repo's to own. There the rules are:
 | `helix/languages.toml` | `~/.config/helix/languages.toml` |
 | `helix/themes/*.toml` | `~/.config/helix/themes/` |
 | `bin/hx-*` (`make`, `harpoon`, `git`, `diff`, `jump`, `keys`) | `~/.local/bin/` |
+| `sublime/User/**` | Sublime's `Packages/User/` (via `install-sublime.sh`) |
 | the `# >>> dotfiles: helix >>>` block | appended to `~/.zshrc` |
 
-`install.sh` only manages what is listed above. The other directories
+`install-helix.sh` only manages what is listed above. The other directories
 (`tmux/`, `ghostty/`, `i3/`, `alacritty/`, `sway/`, `zellij/`, `emacs/`, `zed/`,
-`nixos/`, `claude/`, `sublime/`, `.zshrc`, `starship.toml`, `.vimrc`) are stored
-here but not linked — link them by hand, or extend `install.sh` when you want
+`nixos/`, `claude/`, `.zshrc`, `starship.toml`, `.vimrc`) are stored
+here but not linked — link them by hand, or extend `install-helix.sh` when you want
 them automated.
 
 ## Themes
@@ -80,7 +89,7 @@ matter which Helix build is installed.
 `0ca8da6c5` (2026-07-20) — nothing fork-specific about it. It is vendored here
 so it works on a machine whose Helix predates that commit.
 
-To add another theme, drop it in `helix/themes/` and re-run `install.sh`.
+To add another theme, drop it in `helix/themes/` and re-run `install-helix.sh`.
 
 ## Remembering the keys
 
@@ -284,6 +293,63 @@ Two traps if you extend this:
 **Limit:** Helix has no timer or event hook without a plugin system, so nothing
 can auto-refresh the quickfix buffer when a background build finishes. You press
 `<space>q`. That is the one thing a real plugin system would buy here.
+
+## Sublime Text
+
+```sh
+./install-sublime.sh              # link the User/ config
+./install-sublime.sh --dry-run    # see what it would touch first
+./install-sublime.sh --prune      # also remove packages not in the list
+./install-sublime.sh --uninstall
+```
+
+Config is symlinked from `sublime/User/` into Sublime's User folder, which the
+script locates per OS (`~/.config/sublime-text` on Linux,
+`~/Library/Application Support/Sublime Text` on macOS). Nested files such as
+`mytheme/` are linked individually, so the directory itself is never replaced.
+
+**Packages** are not installed by the script. Package Control reads
+`installed_packages` from `User/Package Control.sublime-settings` and installs
+whatever is missing on the next launch. The list is deliberately small:
+
+`CTags` · `Debugger` · `Git blame` · `GitSavvy` · `LSP` (+ `clangd`, `gopls`,
+`rust-analyzer`) · `Odin` · `Package Control` · `Terminus`
+
+No theme or colour-scheme packages: the active scheme is
+`User/mytheme/Cyanide - Matrix.tmTheme`, a local file, and the UI theme is
+Sublime's built-in Default Dark. `--prune` moves anything not on the list into
+`Installed Packages/.removed-<timestamp>/` rather than deleting it.
+
+### Settings and keymaps per OS
+
+Sublime supports platform-specific files natively, so this uses them rather than
+inventing anything:
+
+| file | scope |
+|---|---|
+| `Preferences.sublime-settings` | everything shared |
+| `Preferences (Linux/OSX).sublime-settings` | display only — font size, UI scale |
+| `Default (Linux).sublime-keymap` | Linux bindings |
+| `Default (OSX).sublime-keymap` | macOS bindings |
+
+**macOS modifiers**, which is where keymaps used to go wrong:
+
+- `super` is Command — the primary modifier, as `ctrl` is on Linux
+- `ctrl` is Control, mostly reserved by macOS itself
+- `alt` is Option and **types characters** — `alt+1` is `¡`, `alt+d` is `∂`. An
+  `alt+letter` or `alt+digit` binding either does nothing or inserts junk. Never
+  bind `alt` alone on macOS; only `super+alt`.
+
+That is why hover is `f12` on macOS but `alt+d` on Linux.
+
+Do not re-bind what Sublime already gives you — that was the other source of
+confusion:
+
+| keys | does | default on |
+|---|---|---|
+| `ctrl+1..9` | focus pane | both |
+| `alt+1..9` | select tab | Linux |
+| `super+1..9` | select tab | macOS |
 
 ## The Helix fork
 

@@ -1,0 +1,18 @@
+// CTags Preferences – User
+// ================================================================
+{
+    "command": "/usr/bin/ctags",
+    "recursive": true,
+    "tag_file": ".tags",
+    "opts": [
+        "--exclude=.git",
+        "--exclude=node_modules",
+        "--exclude=.venv",
+        "--exclude=venv",
+        "--exclude=dist",
+        "--exclude=build",
+        "--exclude=*.min.js",
+        "--fields=+l"
+    ],
+    "autocomplete": true
+}

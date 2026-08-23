@@ -1,0 +1,4 @@
+{
+	// Display-dependent only. Retina handles scaling, so no ui_scale here.
+	"font_size": 14,
+}

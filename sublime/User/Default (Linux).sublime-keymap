@@ -1,0 +1,25 @@
+// Linux keymap. Keep this in step with Default (OSX).sublime-keymap — same
+// actions, modifiers that are safe on each platform.
+//
+// Sublime's own defaults already cover a lot; do not re-bind them here:
+//   ctrl+1..9   focus_group      (pane)        — default on BOTH platforms
+//   alt+1..9    select_by_index  (tab)         — default on Linux
+//   super+1..9  select_by_index  (tab)         — default on macOS
+// The old block that bound alt+1/alt+2 to focus_group AND to select_by_index
+// was shadowing itself and duplicating the default; it is gone.
+[
+    // --- LSP ---
+    { "keys": ["alt+d"], "command": "lsp_hover",
+      "context": [{ "key": "lsp.session_with_capability", "operator": "equal", "operand": "hoverProvider" }] },
+    { "keys": ["f12"], "command": "lsp_symbol_definition",
+      "context": [{ "key": "lsp.session_with_capability", "operator": "equal", "operand": "definitionProvider" }] },
+
+    // --- Build systems ---
+    { "keys": ["ctrl+alt+g"], "command": "set_build_system",
+      "args": { "file": "Packages/User/UniversalGit.sublime-build" } },
+    { "keys": ["ctrl+alt+t"], "command": "set_build_system",
+      "args": { "file": "Packages/User/Tenet.sublime-build" } },
+
+    // --- Terminus ---
+    { "keys": ["ctrl+`"], "command": "toggle_terminus_panel" },
+]

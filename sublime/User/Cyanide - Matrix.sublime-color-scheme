@@ -1,10 +1,15 @@
+// Documentation at https://www.sublimetext.com/docs/color_schemes.html
 {
-    "globals": {
-        "caret": "#39FF14",
-        "block_caret": "#39FF14",
-        "brackets_options": "foreground bold",
-        "brackets_foreground": "#FF0000",
-        "bracket_contents_options": "underline",
-        "bracket_contents_foreground": "#FF0000"
-    }
+	"variables":
+	{
+	},
+	"globals":
+    {
+        "caret": "#00FF41",
+        "block_caret_border": "#00FF41",
+    },
+	"rules":
+	[
+		
+	]
 }

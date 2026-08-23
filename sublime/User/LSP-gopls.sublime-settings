@@ -1,0 +1,5 @@
+{
+    "command": ["/usr/bin/gopls"],
+    "manageGoplsBinary": false,
+    "enabled": true,
+}

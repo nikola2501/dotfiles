@@ -1,24 +1,26 @@
 {
-	"bootstrapped": true,
+	// Package Control installs everything listed here on a fresh machine.
+	// Themes and colour schemes are deliberately absent: the active scheme is
+	// User/mytheme/Cyanide - Matrix.tmTheme, a local file, and the UI theme is
+	// Sublime's built-in Default Dark.
 	"installed_packages":
 	[
-		"Color Scheme - Vintage Terminal",
 		"CTags",
-		"Dark PRO Color Schemes",
-		"DarkLime Color Scheme",
-		"Golang",
-		"Limegrass Color Scheme",
+		"Debugger",
+		"Git blame",
+		"GitSavvy",
 		"LSP",
+		"LSP-clangd",
 		"LSP-gopls",
+		"LSP-rust-analyzer",
 		"Odin",
 		"Package Control",
+		"Terminus",
 	],
-	"in_process_packages":
-	[
-	],
-	"downloader_precedence": {
-        "osx": ["curl", "urllib", "oscrypto"],
-        "linux": ["curl", "urllib", "oscrypto", "wget"],
-        "windows": ["wininet"],
-    },
+	"bootstrapped": true,
+	"downloader_precedence":
+	{
+		"osx": ["curl", "urllib", "oscrypto"],
+		"linux": ["curl", "urllib", "oscrypto", "wget"],
+	},
 }
