@@ -79,7 +79,7 @@
     // Regex search button
     {
         "class": "icon_regex",
-        "layer0.texture": "Theme - Cyanide/Cyanide/asterisk.png",
+        "layer0.texture": "User/mytheme/textures/asterisk.png",
         "layer0.opacity": 0.3,
         "content_margin": 9
 
@@ -93,7 +93,7 @@
     // Case sensitive search button
     {
         "class": "icon_case",
-        "layer0.texture": "Theme - Cyanide/Cyanide/capital.png",
+        "layer0.texture": "User/mytheme/textures/capital.png",
         "layer0.opacity": 0.3,
         "content_margin": 9
     },
@@ -106,7 +106,7 @@
     // Match whole word search button
     {
         "class": "icon_whole_word",
-        "layer0.texture": "Theme - Cyanide/Cyanide/quotes.png",
+        "layer0.texture": "User/mytheme/textures/quotes.png",
         "layer0.opacity": 0.3,
         "content_margin": 9
     },
@@ -123,7 +123,7 @@
     // Show search context button
     {
         "class": "icon_context",
-        "layer0.texture": "Theme - Cyanide/Cyanide/selection.png",
+        "layer0.texture": "User/mytheme/textures/selection.png",
         "layer0.opacity": 0.3,
         "content_margin": 9
     },
@@ -136,7 +136,7 @@
     // Use search buffer
     {
         "class": "icon_use_buffer",
-        "layer0.texture": "Theme - Cyanide/Cyanide/page.png",
+        "layer0.texture": "User/mytheme/textures/page.png",
         "layer0.opacity": 0.3,
         "content_margin": 9
     },
@@ -153,7 +153,7 @@
     // Reverse search direction button (ST2 only)
     {
         "class": "icon_reverse",
-        "layer0.texture": "Theme - Cyanide/Cyanide/reverse.png",
+        "layer0.texture": "User/mytheme/textures/reverse.png",
         "layer0.opacity": 0.3,
         "content_margin": 9
     },
@@ -166,7 +166,7 @@
     // Search wrap button
     {
         "class": "icon_wrap",
-        "layer0.texture": "Theme - Cyanide/Cyanide/wrap.png",
+        "layer0.texture": "User/mytheme/textures/wrap.png",
         "layer0.opacity": 0.3,
         "content_margin": 9
     },
@@ -179,7 +179,7 @@
     // Search in selection button
     {
         "class": "icon_in_selection",
-        "layer0.texture": "Theme - Cyanide/Cyanide/selection.png",
+        "layer0.texture": "User/mytheme/textures/selection.png",
         "layer0.opacity": 0.3,
         "content_margin": 9
     },
@@ -196,7 +196,7 @@
     // Preserve case button
     {
         "class": "icon_preserve_case",
-        "layer0.texture": "Theme - Cyanide/Cyanide/capital.png",
+        "layer0.texture": "User/mytheme/textures/capital.png",
         "layer0.opacity": 0.3,
         "content_margin": 9
     },
@@ -213,7 +213,7 @@
     // Highlight results button
     {
         "class": "icon_highlight",
-        "layer0.texture": "Theme - Cyanide/Cyanide/highlight.png",
+        "layer0.texture": "User/mytheme/textures/highlight.png",
         "layer0.opacity": 0.3,
         "content_margin": 9
     },
@@ -263,7 +263,7 @@
 
     {
         "class": "fold_button_control",
-        "layer0.texture": "Theme - Cyanide/Cyanide/arrow.png",
+        "layer0.texture": "User/mytheme/textures/arrow.png",
         "layer0.opacity": 0.4,
         "layer0.inner_margin": 0,
         "content_margin": [8,8]
@@ -276,7 +276,7 @@
     {
         "class": "fold_button_control",
         "attributes": ["expanded"],
-        "layer0.texture": "Theme - Cyanide/Cyanide/arrow-down.png"
+        "layer0.texture": "User/mytheme/textures/arrow-down.png"
     },
     {
         "class": "fold_button_control",
@@ -591,14 +591,14 @@
         "class": "close_button",
         "parents": [{"class": "tree_row","attributes": ["hover"]}],
         "layer0.opacity": 1,
-        "layer0.texture": "Theme - Cyanide/Cyanide/cross.png"
+        "layer0.texture": "User/mytheme/textures/cross.png"
     },
 
     // Sidebar file dirty
     {
         "class": "close_button",
         "attributes": ["dirty"],
-        "layer0.texture": "Theme - Cyanide/Cyanide/circle.png",
+        "layer0.texture": "User/mytheme/textures/circle.png",
         "layer0.opacity": 1,
         "layer0.tint": [0,255,65]
     },
@@ -606,13 +606,13 @@
         "class": "close_button",
         "attributes": ["dirty"],
         "parents": [{"class": "tree_row","attributes": ["selected"]}],
-        "layer0.texture": "Theme - Cyanide/Cyanide/cross.png"
+        "layer0.texture": "User/mytheme/textures/cross.png"
     },
     {
         "class": "close_button",
         "attributes": ["dirty"],
         "parents": [{"class": "tree_row","attributes": ["hover"]}],
-        "layer0.texture": "Theme - Cyanide/Cyanide/cross.png",
+        "layer0.texture": "User/mytheme/textures/cross.png",
         "layer0.opacity": 1
     },
 
@@ -620,12 +620,12 @@
     {
         "class": "close_button",
         "attributes": ["hover"],
-        "layer0.texture": "Theme - Cyanide/Cyanide/cross.png"
+        "layer0.texture": "User/mytheme/textures/cross.png"
     },
     {
         "class": "close_button",
         "parents": [{"class": "tree_row","attributes": ["hover","selected"]}],
-        "layer0.texture": "Theme - Cyanide/Cyanide/cross.png",
+        "layer0.texture": "User/mytheme/textures/cross.png",
         "layer0.opacity": 1
     },
 
@@ -651,7 +651,7 @@
     {
         "class": "disclosure_button_control",
         "content_margin": [8,8],
-        "layer0.texture": "Theme - Cyanide/Cyanide/folder-closed.png",
+        "layer0.texture": "User/mytheme/textures/folder-closed.png",
         "layer0.tint": [0,255,65],
         "layer0.opacity": 1,
         "layer0.inner_margin": 0
@@ -670,7 +670,7 @@
     {
         "class": "disclosure_button_control",
         "attributes": ["expanded"],
-        "layer0.texture": "Theme - Cyanide/Cyanide/folder-open.png"
+        "layer0.texture": "User/mytheme/textures/folder-open.png"
     },
     {
         "class": "disclosure_button_control",
@@ -681,7 +681,7 @@
         "class": "disclosure_button_control",
         "attributes": ["expanded"],
         "parents": [{"class": "tree_row","attributes": ["selected"]}],
-        "layer0.texture": "Theme - Cyanide/Cyanide/folder-open.png"
+        "layer0.texture": "User/mytheme/textures/folder-open.png"
     },
 
     //
@@ -721,14 +721,14 @@
         {
             "keyframes":
             [
-                "Theme - Cyanide/Cyanide/spinner7.png",
-                "Theme - Cyanide/Cyanide/spinner6.png",
-                "Theme - Cyanide/Cyanide/spinner5.png",
-                "Theme - Cyanide/Cyanide/spinner4.png",
-                "Theme - Cyanide/Cyanide/spinner3.png",
-                "Theme - Cyanide/Cyanide/spinner2.png",
-                "Theme - Cyanide/Cyanide/spinner1.png",
-                "Theme - Cyanide/Cyanide/spinner.png",
+                "User/mytheme/textures/spinner7.png",
+                "User/mytheme/textures/spinner6.png",
+                "User/mytheme/textures/spinner5.png",
+                "User/mytheme/textures/spinner4.png",
+                "User/mytheme/textures/spinner3.png",
+                "User/mytheme/textures/spinner2.png",
+                "User/mytheme/textures/spinner1.png",
+                "User/mytheme/textures/spinner.png",
             ],
             "loop": true,
             "frame_time": 0.075
@@ -771,7 +771,7 @@
     // Tab close button
     {
         "class": "tab_close_button",
-        "layer0.texture": "Theme - Cyanide/Cyanide/cross.png",
+        "layer0.texture": "User/mytheme/textures/cross.png",
         "layer0.opacity": 0,
         "layer0.tint": [255,255,255]
     },
@@ -797,7 +797,7 @@
     {
         "class": "tab_close_button",
         "parents": [{"class": "tab_control","attributes": ["dirty"]}],
-        "layer0.texture": "Theme - Cyanide/Cyanide/circle.png",
+        "layer0.texture": "User/mytheme/textures/circle.png",
         "layer0.tint": [0,255,65],
         "layer0.opacity": 1
     },
@@ -811,7 +811,7 @@
     {
         "class": "tab_close_button",
         "parents": [{"class": "tab_control","attributes": ["dirty","hover"]}],
-        "layer0.texture": "Theme - Cyanide/Cyanide/cross.png",
+        "layer0.texture": "User/mytheme/textures/cross.png",
         "layer0.opacity": 1
     },
     {
@@ -1280,20 +1280,20 @@
     {
         "class": "disclosure_button_control",
         "settings": ["centurion_folder_icons"],
-        "layer0.texture": "Theme - Cyanide/Cyanide/centurion-folder-closed.png"
+        "layer0.texture": "User/mytheme/textures/centurion-folder-closed.png"
     },
     {
         "class": "disclosure_button_control",
         "settings": ["centurion_folder_icons"],
         "attributes": ["expanded"],
-        "layer0.texture": "Theme - Cyanide/Cyanide/centurion-folder-open.png"
+        "layer0.texture": "User/mytheme/textures/centurion-folder-open.png"
     },
     {
         "class": "disclosure_button_control",
         "settings": ["centurion_folder_icons"],
         "attributes": ["expanded"],
         "parents": [{"class": "tree_row","attributes": ["selected"]}],
-        "layer0.texture": "Theme - Cyanide/Cyanide/centurion-folder-open.png"
+        "layer0.texture": "User/mytheme/textures/centurion-folder-open.png"
     },
     // END Centurion folder icons
 
@@ -1301,20 +1301,20 @@
     {
         "class": "disclosure_button_control",
         "settings": ["afterglow_folder_icons"],
-        "layer0.texture": "Theme - Cyanide/Cyanide/afterglow-folder-closed.png"
+        "layer0.texture": "User/mytheme/textures/afterglow-folder-closed.png"
     },
     {
         "class": "disclosure_button_control",
         "settings": ["afterglow_folder_icons"],
         "attributes": ["expanded"],
-        "layer0.texture": "Theme - Cyanide/Cyanide/afterglow-folder-open.png"
+        "layer0.texture": "User/mytheme/textures/afterglow-folder-open.png"
     },
     {
         "class": "disclosure_button_control",
         "settings": ["afterglow_folder_icons"],
         "attributes": ["expanded"],
         "parents": [{"class": "tree_row","attributes": ["selected"]}],
-        "layer0.texture": "Theme - Cyanide/Cyanide/afterglow-folder-open.png"
+        "layer0.texture": "User/mytheme/textures/afterglow-folder-open.png"
     },
     // END Afterglow folder icons
 
@@ -1322,20 +1322,20 @@
     {
         "class": "disclosure_button_control",
         "settings": ["spacefunk_folder_icons"],
-        "layer0.texture": "Theme - Cyanide/Cyanide/spacefunk-folder-closed.png"
+        "layer0.texture": "User/mytheme/textures/spacefunk-folder-closed.png"
     },
     {
         "class": "disclosure_button_control",
         "settings": ["spacefunk_folder_icons"],
         "attributes": ["expanded"],
-        "layer0.texture": "Theme - Cyanide/Cyanide/spacefunk-folder-open.png"
+        "layer0.texture": "User/mytheme/textures/spacefunk-folder-open.png"
     },
     {
         "class": "disclosure_button_control",
         "settings": ["spacefunk_folder_icons"],
         "attributes": ["expanded"],
         "parents": [{"class": "tree_row","attributes": ["selected"]}],
-        "layer0.texture": "Theme - Cyanide/Cyanide/spacefunk-folder-open.png"
+        "layer0.texture": "User/mytheme/textures/spacefunk-folder-open.png"
     },
     // END Spacefunk folder icons
 
