@@ -92,6 +92,10 @@ if [ "$UNINSTALL" -eq 1 ]; then
   echo; echo "  removing symlinks"; echo
   unlink_one "$CONFIG_HOME/helix/config.toml"
   unlink_one "$CONFIG_HOME/helix/languages.toml"
+  for t in "$DOTFILES"/helix/themes/*.toml; do
+    [ -e "$t" ] || continue
+    unlink_one "$CONFIG_HOME/helix/themes/$(basename "$t")"
+  done
   if [ -f "$HOME/.zshrc" ] && grep -qF "# >>> dotfiles: helix >>>" "$HOME/.zshrc"; then
     run cp "$HOME/.zshrc" "$HOME/.zshrc.bak-$STAMP"
     if [ "$DRY" -eq 0 ]; then
@@ -119,6 +123,16 @@ echo
 # ---------------------------------------------------------------- helix config
 link "$DOTFILES/helix/config.toml"    "$CONFIG_HOME/helix/config.toml"
 link "$DOTFILES/helix/languages.toml" "$CONFIG_HOME/helix/languages.toml"
+
+# Themes live in the Helix *runtime*, which is per-installation, while this
+# config is shared — so a theme this config names has to travel with it or the
+# other machine silently falls back to the default. Helix searches
+# $config/themes first (application.rs prepends config_dir to the runtime dirs),
+# so a file here wins regardless of which Helix build is installed.
+for t in "$DOTFILES"/helix/themes/*.toml; do
+  [ -e "$t" ] || continue
+  link "$t" "$CONFIG_HOME/helix/themes/$(basename "$t")"
+done
 
 # ---------------------------------------------------------------- zsh
 # Your ~/.zshrc is yours. We never replace it, never symlink it, and never move
