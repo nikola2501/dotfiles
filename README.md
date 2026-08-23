@@ -49,6 +49,24 @@ this repo's to own. There the rules are:
 4. Anything replaced is moved to `<name>.bak-<timestamp>` first. Nothing is ever
    deleted.
 
+## Remembering the keys
+
+`<space>i` opens a cheatsheet in a buffer.
+
+It exists because **Helix cannot label a custom keybinding.** A bound typed
+command shows in the SPACE menu as its raw text — `commands.rs` builds the doc as
+`format!(":{} {:?}", name, args)` whenever there are arguments — a command
+sequence shows `[Multiple commands]`, and a submenu's name is `#[serde(skip)]`,
+so `v` and `z` show nothing at all. Only built-in commands carry a description.
+
+Fixing that properly means patching `helix-term/src/keymap.rs`, which would cost
+the fork its `git merge --ff-only` sync. Not worth it for a label, so the
+cheatsheet lives in a buffer instead.
+
+`hx-keys` generates it from the **comments in `helix/config.toml`** — the same
+lines that document each binding in place, so there is nothing to keep in sync.
+Add a `# <space>x : does the thing` comment next to a new binding and it appears.
+
 ## Helix: quickfix and harpoon
 
 `bin/hx-make` and `bin/hx-harpoon` add Vim's quickfix / Emacs' compile-mode and

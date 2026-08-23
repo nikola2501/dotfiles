@@ -106,6 +106,7 @@ if [ "$UNINSTALL" -eq 1 ]; then
   unlink_one "$BIN/hx-git"
   unlink_one "$BIN/hx-diff"
   unlink_one "$BIN/hx-jump"
+  unlink_one "$BIN/hx-keys"
   echo; say "done"; echo
   exit 0
 fi
@@ -172,6 +173,7 @@ link "$DOTFILES/bin/hx-harpoon" "$BIN/hx-harpoon"
 link "$DOTFILES/bin/hx-git"     "$BIN/hx-git"
 link "$DOTFILES/bin/hx-diff"    "$BIN/hx-diff"
 link "$DOTFILES/bin/hx-jump"    "$BIN/hx-jump"
+link "$DOTFILES/bin/hx-keys"    "$BIN/hx-keys"
 
 case ":$PATH:" in
   *":$BIN:"*) ;;

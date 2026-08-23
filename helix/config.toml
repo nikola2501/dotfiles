@@ -62,8 +62,7 @@ mode.select = "SELECT"
 # <space>m : build (auto-detected) into the quickfix buffer
 # <space>M : same, but keep the cursor where it is
 # <space>q : refresh / reopen the quickfix buffer
-# A-ret    : jump to what the current line points at — a path:row:col in a
-#            list, or a position inside a unified diff. Any saved buffer.
+# A-ret    : jump to what the line points at — path:row:col, or a spot in a diff
 space.m = [":sh hx-make", ":open %sh{hx-make --path}", ":reload", "goto_file_start"]
 space.M = [":sh hx-make", ":open %sh{hx-make --path}", ":reload"]
 space.q = [":open %sh{hx-make --path}", ":reload"]
@@ -73,22 +72,25 @@ space.q = [":open %sh{hx-make --path}", ":reload"]
 # <space>vs : which FILES changed        ("what am I working on")
 # <space>vc : which LINES changed vs HEAD, staged and unstaged both
 # <space>vb : which LINES changed vs the merge-base with main/master
-# <space>vd : the DIFF vs HEAD          <space>vr : the DIFF vs merge-base (PR review)
-# A-ret jumps from any of them, same as from the quickfix buffer.
+# <space>vd : the DIFF vs HEAD, syntax highlighted
+# <space>vr : the DIFF vs merge-base — the PR review one
+# <space>vp : the review diff in a tmux popup through delta (reading only)
 space.v.s = [":sh hx-git status",  ":open %sh{hx-git --path}", ":reload", "goto_file_start"]
 space.v.c = [":sh hx-git changed", ":open %sh{hx-git --path}", ":reload", "goto_file_start"]
 space.v.b = [":sh hx-git branch",  ":open %sh{hx-git --path}", ":reload", "goto_file_start"]
 # the actual diff, syntax-highlighted, for reading a change rather than listing it
 space.v.d = [":sh hx-diff changed", ":open %sh{hx-diff --path}", ":reload", "goto_file_start"]
 space.v.r = [":sh hx-diff review",  ":open %sh{hx-diff --path}", ":reload", "goto_file_start"]
-# delta emits ANSI colour, which a Helix buffer cannot render — so it goes in a
-# tmux popup, for reading only. Use <space>vr when you want to jump into code.
+# delta emits ANSI colour, which a Helix buffer cannot render, so it goes in a
+# popup. Use vr when you want to jump into code.
 space.v.p = ":sh tmux popup -d \"#{pane_current_path}\" -xC -yC -w95%% -h95%% -E 'hx-diff --raw review | delta --paging=always'"
 
 # --- harpoon: per-project pinned files ---
-# <space>za pin current file+line   <space>ze edit the pin list as a buffer
-# <space>zl list                    <space>zc clear
-# A-1 .. A-9 jump to pin N
+# <space>za : pin the current file+line
+# <space>ze : edit the pin list as a buffer
+# <space>zl : list the pins in the statusline
+# <space>zc : clear all pins
+# A-1 to A-9 : jump to pin N
 "A-1" = ":open %sh{hx-harpoon get 1}"
 "A-2" = ":open %sh{hx-harpoon get 2}"
 "A-3" = ":open %sh{hx-harpoon get 3}"
@@ -102,6 +104,10 @@ space.z.a = ":echo %sh{hx-harpoon add \"%{buffer_name}\" %{cursor_line}}"
 space.z.e = [":open %sh{hx-harpoon file}", ":reload"]
 space.z.l = ":echo %sh{hx-harpoon list}"
 space.z.c = ":echo %sh{hx-harpoon clear}"
+
+# --- help ---
+# <space>i  : this cheatsheet, since Helix cannot label custom bindings
+space.i = [":open %sh{hx-keys}", ":reload", "goto_file_start"]
 # <<< hx-kit <<<
 esc = ["collapse_selection", "keep_primary_selection"]
 C-u = ["half_page_up", "align_view_center"]

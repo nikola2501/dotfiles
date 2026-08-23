@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+# hx-keys — the cheatsheet for the bindings this dotfiles repo adds.
+#
+# Helix cannot label custom keybindings: a bound typed command shows up in the
+# SPACE menu as its raw text (helix-term/src/commands.rs formats the doc as
+# ":name args"), a command sequence shows "[Multiple commands]", and a submenu's
+# name is #[serde(skip)] so it shows nothing at all. Rather than patch Helix,
+# this pulls the descriptions out of the config's own comments — one source of
+# truth, nothing to keep in sync.
+#
+#   hx-keys          write the cheatsheet, print its path
+#   hx-keys --path   just print the path
+
+set -uo pipefail
+
+CFG="${XDG_CONFIG_HOME:-$HOME/.config}/helix/config.toml"
+OUT="${XDG_RUNTIME_DIR:-/tmp}/hx-keys.md"
+[ "${1:-}" = "--path" ] && { echo "$OUT"; exit 0; }
+
+{
+  echo "# Keys added by dotfiles"
+  echo
+  echo "Helix shows custom bindings as raw commands in the SPACE menu, so this is"
+  echo "the readable version. Generated from the comments in:"
+  echo "  $CFG"
+  echo
+  # Comment lines that document a key: they mention <space>, A-ret or A-<digit>.
+  # The section headers (# --- ... ---) become the groupings.
+  awk '
+    /^# --- .* ---/ {
+      h=$0; sub(/^# --- */, "", h); sub(/ *-*$/, "", h)
+      printf "\n## %s\n\n", h; next
+    }
+    /^#/ && (/<space>/ || /A-ret/ || /A-[0-9]/) {
+      l=$0; sub(/^# */, "", l); printf "  %s\n", l
+    }
+  ' "$CFG"
+  echo
+  echo "## Not in a menu"
+  echo
+  echo "  :sh hx-make <cmd>     run anything into the quickfix buffer, then <space>q"
+  echo "  :sh hx-git branch REF  diff against a specific ref"
+  echo "  :sh hx-diff review REF same, as a diff view"
+  echo "  .hx-make               file in a project root overrides the build command"
+  echo "  HX_DIFF_CONTEXT        context lines in the diff view (default 5)"
+  echo
+  echo "Full docs: $HOME/repos/me/dotfiles/README.md"
+} > "$OUT"
+
+echo "$OUT"
