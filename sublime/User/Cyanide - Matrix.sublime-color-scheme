@@ -1,15 +1,216 @@
+// Overrides on top of mytheme/Cyanide - Matrix.tmTheme.
 // Documentation at https://www.sublimetext.com/docs/color_schemes.html
+//
+// Ovaj fajl nosi neon paletu, poravnatu sa nvim temom
+// (~/.config/nvim/colors/matrix.lua + lua/matrix/palette.lua).
+// tmTheme ostaje baza; sve boje ispod ga preklapaju, pa je ovo mesto istine
+// za boje, ne tmTheme.
+//
+// Razlike u odnosu na tmTheme, iste kao u nvim-u:
+//   - comment: plav #5B8DEF  ->  neon crimson #FF0055
+//   - string:  zelen #00FF41 ->  neon azure   #00BFFF
+//   - cela paleta na sat 100% / val 100%: warn #FFDD00, error #FF2200,
+//     diff range #00D4FF
+//   - gutter/line_highlight/selection/guide podignuti: tmTheme ima #333333
+//     gutter (1.5:1 na #0a0a0a), sto na monitoru pod prirodnom svetloscu ne
+//     postoji
 {
-	"variables":
-	{
-	},
-	"globals":
-    {
-        "caret": "#00FF41",
-        "block_caret_border": "#00FF41",
+    "variables": {
+        "bg":          "#0a0a0a",
+        "fg":          "#cccccc",
+        "fg_type":     "#dddddd",
+        "fg_func":     "#efefef",
+        "fg_op":       "#aaaaaa",
+        "invisibles":  "#6a6a6a",
+
+        // neon set: sat 100% / val 100%
+        "green":       "#00ff41",
+        "blue":        "#00bfff",
+        "comment":     "#ff0055",
+        "bracket":     "#ff0055",
+        "caret":       "#39ff14",
+        "warn":        "#ffdd00",
+        "error":       "#ff2200",
+        "cyan":        "#00d4ff",
+
+        // podignuti UI slojevi (tmTheme vrednost u komentaru)
+        "gutter":      "#707070",
+        "cursorline":  "#1c1c1c",
+        "selection":   "#333333",
+        "guide":       "#2a2a2a"
     },
-	"rules":
-	[
-		
-	]
+
+    "globals": {
+        "background":                  "var(bg)",
+        "foreground":                  "var(fg)",
+        "invisibles":                  "var(invisibles)",
+        "caret":                       "var(caret)",
+        "block_caret":                 "var(bg)",
+        "block_caret_border":          "var(caret)",
+
+        "line_highlight":              "var(cursorline)",
+        "selection":                   "var(selection)",
+        "gutter_foreground":           "var(gutter)",
+
+        // indent_guide_options: ["draw_normal", "draw_active"]
+        "guide":                       "var(guide)",
+        "active_guide":                "var(gutter)",
+        "stack_guide":                 "var(guide)",
+
+        // Paired with match_brackets* in Preferences.sublime-settings.
+        "brackets_options":            "foreground bold",
+        "brackets_foreground":         "var(bracket)",
+        "bracket_contents_options":    "underline",
+        "bracket_contents_foreground": "var(bracket)",
+
+        // nvim IncSearch/CurSearch: fg = bg, bg = green
+        "find_highlight":              "var(green)",
+        "find_highlight_foreground":   "var(bg)",
+
+        "misspelling":                 "var(error)",
+        "accent":                      "var(green)",
+
+        // gutter diff bars, isto kao gitsigns u nvim-u
+        "line_diff_added":             "var(green)",
+        "line_diff_modified":          "var(blue)",
+        "line_diff_deleted":           "var(error)"
+    },
+
+    "rules": [
+        {
+            "name": "Comment",
+            "scope": "comment",
+            "foreground": "var(comment)"
+        },
+        {
+            "name": "String literal",
+            "scope": "string",
+            "foreground": "var(blue)"
+        },
+        {
+            "name": "Character literal",
+            "scope": "constant.character",
+            "foreground": "var(blue)"
+        },
+        {
+            // specificniji od constant.character, pa pobedjuje bez obzira na
+            // redosled — isto kao @string.escape u nvim-u
+            "name": "Escape sequence",
+            "scope": "constant.character.escape",
+            "foreground": "var(green)",
+            "font_style": "bold"
+        },
+        {
+            "name": "Number, Constant, Function Argument, Tag Attribute, Embedded",
+            "scope": "constant.numeric, constant.language, support.constant, variable.parameter, punctuation.section.embedded, keyword.other.unit",
+            "foreground": "var(green)"
+        },
+        {
+            // u tmTheme-u su ovi u istom pravilu kao string, ali nisu literali
+            "name": "Symbols, Inherited Class, Markup Heading",
+            "scope": "constant.other.symbol, entity.other.inherited-class, markup.heading",
+            "foreground": "var(green)"
+        },
+        {
+            "name": "Keyword, Storage",
+            "scope": "keyword, storage, storage.type, entity.name.tag.css",
+            "foreground": "var(green)"
+        },
+        {
+            // tema deli keyword (green) od keyword.operator (#AAA)
+            "name": "Operator, Punctuation",
+            "scope": "keyword.operator, punctuation, constant.other.color",
+            "foreground": "var(fg_op)"
+        },
+        {
+            "name": "Function, Special Method, Block Level",
+            "scope": "entity.name.function, meta.function-call, support.function, keyword.other.special-method, meta.block-level",
+            "foreground": "var(fg_func)"
+        },
+        {
+            "name": "Class, Support, Namespace",
+            "scope": "entity.name.class, entity.name.type.class, support.type, support.class, entity.name.namespace",
+            "foreground": "var(fg_type)"
+        },
+        {
+            "name": "Variable, String Link, Tag Name",
+            "scope": "variable, support.other.variable, string.other.link, entity.name.tag, entity.other.attribute-name, meta.tag, declaration.tag",
+            "foreground": "var(fg)"
+        },
+        {
+            "name": "Foreground",
+            "scope": "keyword.operator.class, constant.other, source.php.embedded.line",
+            "foreground": "var(fg)"
+        },
+        {
+            "name": "Markup raw",
+            "scope": "markup.raw, markup.raw.inline",
+            "foreground": "var(green)"
+        },
+        {
+            "name": "Markup link",
+            "scope": "markup.underline.link",
+            "foreground": "var(blue)",
+            "font_style": "underline"
+        },
+        {
+            "name": "Markup quote",
+            "scope": "markup.quote",
+            "foreground": "var(comment)",
+            "font_style": "italic"
+        },
+        {
+            "name": "Invalid",
+            "scope": "invalid",
+            "foreground": "var(error)"
+        },
+        {
+            "name": "Invalid deprecated",
+            "scope": "invalid.deprecated",
+            "foreground": "var(warn)"
+        },
+        {
+            "name": "SublimeLinter Warning",
+            "scope": "sublimelinter.mark.warning",
+            "foreground": "var(warn)"
+        },
+        {
+            "name": "SublimeLinter Error",
+            "scope": "sublimelinter.mark.error",
+            "foreground": "var(error)"
+        },
+        {
+            "name": "Diff insertion",
+            "scope": "markup.inserted.diff, meta.diff.header.to-file",
+            "foreground": "var(green)"
+        },
+        {
+            "name": "Diff deletion",
+            "scope": "markup.deleted.diff, meta.diff.header.from-file",
+            "foreground": "var(error)"
+        },
+        {
+            "name": "Diff range",
+            "scope": "meta.diff.range",
+            "foreground": "var(cyan)",
+            "font_style": "italic"
+        },
+        {
+            // tmTheme boji sve gitgutter markere u #00FF41; u nvim-u su
+            // razdvojeni jer se add/change/delete inace ne razlikuju
+            "name": "GitGutter inserted",
+            "scope": "markup.inserted.git_gutter",
+            "foreground": "var(green)"
+        },
+        {
+            "name": "GitGutter changed",
+            "scope": "markup.changed.git_gutter",
+            "foreground": "var(blue)"
+        },
+        {
+            "name": "GitGutter deleted",
+            "scope": "markup.deleted.git_gutter",
+            "foreground": "var(error)"
+        }
+    ]
 }
