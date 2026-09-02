@@ -20,15 +20,18 @@ Grupni // komentar iznad bloka mapa se NE koristi kao opis — to je proza o
 celoj grupi, i kao opis pojedine mape daje besmislice. Sekcija se vidi u
 drugom redu unosa.
 
-Pretraga hvata taster i opis, i samo njih: QuickPanelItem poklapa upit
-isključivo sa `trigger`-om, pa ime komande i sekcija ne ucestvuju u
-matchovanju. ST-ov fuzzy matcher je subsequence i jako ceni poklapanja na
-granici reci, pa bi "git" inace izbacio "focus_group ... Pane navigation"
-ispred pravih git mapa. show_quick_panel nema flag za sortiranje, pa je
-kontrola nad senom jedino sto imam.
+Sortiranje je moje, ne ST-ovo. ST-ov fuzzy matcher je subsequence koji jako
+ceni poklapanja na granici reci, pa mu se "git" lepo poklopi sa "**g**s
+**i**nterface **t**oggle help" i to izbaci ispred "git: commit".
+show_quick_panel nema flag za sortiranje, a rangiranje se ne moze preuzeti
+dok ST filtrira — zato upit ide kroz input panel, ja rangiram fzf-ovim
+principima (kontinuirano poklapanje > granica reci > raspršeno, ranije je
+bolje, krace je bolje), pa mu dam vec sortiranu listu.
 
-    keys_search       quick panel, enter izvrsi
-    keys_search_all   isto, ali uvek i GitSavvy view tasteri
+Vise reci u upitu je AND: "pr diff" mora da poklopi oba tokena. Prazan upit
+daje sve mape, moje pre GitSavvy-jevih.
+
+    keys_search       upit -> rangirani rezultati -> enter izvrsi
     keys_cheatsheet   regeneriraj i otvori KEYS.md (bin/dot-keys)
 """
 
@@ -58,6 +61,13 @@ GS_VIEWS = {
     "git_savvy.status_view": "GitSavvy status",
 }
 
+WORD_START = re.compile(r"[^A-Za-z0-9]")
+
+# Koliko vredi to da je mapa izvrsiva u trenutnom kontekstu. Dovoljno da
+# potisne tiebreak duzine, ali ne toliko da sakrije bukvalno poklapanje iz
+# drugog lane-a.
+CONTEXT_BONUS = 500
+
 SECTION_RE = re.compile(r"^//\s*---+\s*(.*?)\s*---+\s*$")
 TRAILING_RE = re.compile(r"//\s*(.+?)\s*$")
 
@@ -66,6 +76,51 @@ def _strip_jsonc(text):
     text = re.sub(r"^\s*//.*$", "", text, flags=re.M)
     text = re.sub(r"//[^\"\n]*$", "", text, flags=re.M)
     return re.sub(r",(\s*[\]}])", r"\1", text)
+
+
+def _token_score(token, text, lower):
+    """fzf-ovi principi: kontinuirano > granica reci > raspršeno."""
+    pos = lower.find(token)
+    if pos >= 0:
+        score = 1000 + 12 * len(token)
+        if pos == 0:
+            score += 400                       # pocetak celog unosa
+        elif WORD_START.match(text[pos - 1]):
+            score += 250                       # pocetak reci
+        return score - min(pos, 60) * 2        # sto ranije, to bolje
+
+    idx, first, last, consecutive, boundary = 0, None, None, 0, 0
+    prev = -2
+    for char in token:
+        idx = lower.find(char, idx)
+        if idx < 0:
+            return None
+        if first is None:
+            first = idx
+        if idx == prev + 1:
+            consecutive += 1
+        if idx == 0 or WORD_START.match(text[idx - 1]):
+            boundary += 1
+        prev = last = idx
+        idx += 1
+    span = last - first + 1
+    return (100 + 25 * consecutive + 15 * boundary
+            - 3 * (span - len(token)) - min(first, 40))
+
+
+def _score(query, text):
+    """Score ili None. Vise tokena je AND — svi moraju da se poklope."""
+    tokens = [t for t in query.lower().split() if t]
+    if not tokens:
+        return 0
+    lower = text.lower()
+    total = 0
+    for token in tokens:
+        part = _token_score(token, text, lower)
+        if part is None:
+            return None
+        total += part
+    return total - len(text) * 0.5             # krace je bolje, tiebreak
 
 
 def _packages_dir():
@@ -206,7 +261,7 @@ def _in_gitsavvy_view(window):
     return any(settings.get(name) for name in GS_VIEWS)
 
 
-def _entries(include_gitsavvy):
+def _entries():
     captions = _captions()
     user_keymap = os.path.join(sublime.packages_path(), "User",
                                "Default.sublime-keymap")
@@ -214,8 +269,7 @@ def _entries(include_gitsavvy):
     if os.path.exists(user_keymap):
         with open(user_keymap) as handle:
             binds = _parse_keymap(handle.read(), "Moje mape")
-    if include_gitsavvy:
-        binds += _gitsavvy_bindings()
+    binds += _gitsavvy_bindings()
 
     items, actions = [], []
     for keys, command, args, desc, section in binds:
@@ -230,53 +284,79 @@ def _entries(include_gitsavvy):
         gs_view = section.startswith("GitSavvy ") and "view-u" in section
         kind = ((sublime.KIND_ID_NAVIGATION, "g", "GitSavvy view") if gs_view
                 else (sublime.KIND_ID_FUNCTION, "k", "Key"))
+        trigger = "{}   —   {}".format(keys, label)
         items.append(sublime.QuickPanelItem(
-            "{}   —   {}".format(keys, label),
-            details=shown,
-            annotation=section,
-            kind=kind))
-        actions.append((command, args))
+            trigger, details=shown, annotation=section, kind=kind))
+        actions.append((command, args, trigger, gs_view))
     return items, actions
 
 
 class KeysSearchCommand(sublime_plugin.WindowCommand):
-    """GitSavvy tasteri ulaze samo kad je njegov view aktivan.
-
-    ST-ov fuzzy matcher uvek sam rangira rezultate — show_quick_panel nema
-    flag za sortiranje — a on scatter-match ceni jako: "git" mu se poklopi sa
-    "**g**s **i**nline diff **t**oggle side" i to izbaci ispred "git: commit".
-    Rangiranje ne mogu da promenim, ali mogu da ne stavljam u spisak 103
-    GitSavvy view tastera koji se iz obicnog fajla ne mogu ni izvrsiti.
-    Cim si u GitSavvy view-u, oni su relevantni i vracaju se.
-
-    keys_search_all ih uvek ukljuci, ako mi zatrebaju za citanje.
-    """
-
-    all_bindings = False
+    """Upit kroz input panel, rangiranje moje, enter izvrsava komandu."""
 
     def run(self):
-        include = self.all_bindings or _in_gitsavvy_view(self.window)
-        items, actions = _entries(include)
+        items, actions = _entries()
         if not items:
             self.window.status_message("keys: nisam nasao ni jednu mapu")
             return
+        self.items, self.actions = items, actions
+        self.window.show_input_panel(
+            "keys ({} mapa):".format(len(items)), "",
+            self.on_done, self.on_change, None)
 
-        def picked(index):
-            if index < 0:
+    def _ranked(self, query):
+        # Kontekst odlucuje ko je "moj" lane: u obicnom fajlu GitSavvy view
+        # tasteri se ne mogu ni izvrsiti, pa idu nize; u GitSavvy view-u su
+        # oni ono sto trazim. Nista se ne izbacuje iz spiska, samo se rangira
+        # drugacije — inace jednoslovni GitSavvy tasteri pobede na tiebreak-u
+        # duzine i "git" izbaci "F — git: diff" ispred "git status".
+        prefer_gs = _in_gitsavvy_view(self.window)
+        if not query.strip():
+            order = sorted(range(len(self.items)),
+                           key=lambda i: (self.actions[i][3] != prefer_gs, i))
+            return order
+        scored = []
+        for index, action in enumerate(self.actions):
+            score = _score(query, action[2])
+            if score is None:
+                continue
+            if action[3] == prefer_gs:
+                score += CONTEXT_BONUS
+            scored.append((score, index))
+        scored.sort(key=lambda pair: (-pair[0], pair[1]))
+        return [index for _score_, index in scored]
+
+    def on_change(self, query):
+        order = self._ranked(query)
+        if not order:
+            self.window.status_message("keys: nema poklapanja za \"{}\"".format(query))
+            return
+        self.window.status_message("keys: {} poklapanja — prvo: {}".format(
+            len(order), self.items[order[0]].trigger))
+
+    def on_done(self, query):
+        order = self._ranked(query)
+        if not order:
+            self.window.status_message("keys: nema poklapanja")
+            return
+        if len(order) == 1:
+            command, args = self.actions[order[0]][:2]
+            self.window.run_command(command, args)
+            return
+
+        shown = [self.items[index] for index in order]
+
+        def picked(choice):
+            if choice < 0:
                 return
-            command, args = actions[index]
+            command, args = self.actions[order[choice]][:2]
             # run_command na prozoru kaskadira: window -> aktivni view ->
             # application, pa rade i TextCommand mape (npr. GitSavvy `o`)
             self.window.run_command(command, args)
 
-        self.window.show_quick_panel(
-            items, picked,
-            placeholder="{} mapa{}".format(
-                len(items), "" if include else " (bez GitSavvy view tastera)"))
-
-
-class KeysSearchAllCommand(KeysSearchCommand):
-    all_bindings = True
+        # ST bi ovu listu ponovo sortirao da se u njoj kuca, ali je vec
+        # rangirana i najbolji je selektovan, pa je dovoljan enter
+        self.window.show_quick_panel(shown, picked, selected_index=0)
 
 
 def _dot_keys_bin():
