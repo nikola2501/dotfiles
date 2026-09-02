@@ -111,6 +111,7 @@ if [ "$UNINSTALL" -eq 1 ]; then
   unlink_one "$BIN/hx-diff"
   unlink_one "$BIN/hx-jump"
   unlink_one "$BIN/hx-keys"
+  unlink_one "$BIN/dot-keys"
   echo; say "done"; echo
   exit 0
 fi
@@ -197,6 +198,9 @@ link "$DOTFILES/bin/hx-git"     "$BIN/hx-git"
 link "$DOTFILES/bin/hx-diff"    "$BIN/hx-diff"
 link "$DOTFILES/bin/hx-jump"    "$BIN/hx-jump"
 link "$DOTFILES/bin/hx-keys"    "$BIN/hx-keys"
+# dot-keys nije helix-specifican (pravi KEYS.md za sva tri editora), ali je
+# ovo skripta koja drzi $BIN, pa ide odavde.
+link "$DOTFILES/bin/dot-keys"   "$BIN/dot-keys"
 
 case ":$PATH:" in
   *":$BIN:"*) ;;

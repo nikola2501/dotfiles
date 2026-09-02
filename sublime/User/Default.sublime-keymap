@@ -88,4 +88,26 @@
     { "keys": ["ctrl+shift+v"], "command": "pr_diff_file" },
     { "keys": ["ctrl+shift+b"], "command": "pr_diff_pick_base" },
     { "keys": ["ctrl+shift+c"], "command": "pr_commits" },
+
+    // --- Pomeranje tabova (tab_tools.py) ---
+    // ST nema ugradjenu komandu za redosled tabova unutar panela; super+1..9
+    // samo fokusiraju. Ovo su iste cifre uz shift: super+N fokusira tab N,
+    // super+shift+N prebaci trenutni tab na mesto N. super+shift+1..9 su
+    // slobodni u ST default keymapu na macOS-u.
+    { "keys": ["super+shift+1"], "command": "move_tab_to_index", "args": { "index": 1 } },
+    { "keys": ["super+shift+2"], "command": "move_tab_to_index", "args": { "index": 2 } },
+    { "keys": ["super+shift+3"], "command": "move_tab_to_index", "args": { "index": 3 } },
+    { "keys": ["super+shift+4"], "command": "move_tab_to_index", "args": { "index": 4 } },
+    { "keys": ["super+shift+5"], "command": "move_tab_to_index", "args": { "index": 5 } },
+    { "keys": ["super+shift+6"], "command": "move_tab_to_index", "args": { "index": 6 } },
+    { "keys": ["super+shift+7"], "command": "move_tab_to_index", "args": { "index": 7 } },
+    { "keys": ["super+shift+8"], "command": "move_tab_to_index", "args": { "index": 8 } },
+    { "keys": ["super+shift+9"], "command": "move_tab_to_index", "args": { "index": 9 } },
+
+    // --- Cheatsheet (keys_help.py) ---
+    // KEYS.md u korenu repoa, generise ga bin/dot-keys iz samih configa.
+    // F1 otvara, shift+F1 daje quick panel preko svih mapa (i nvim i helix
+    // i Sublime), sa skokom na taj red u KEYS.md.
+    { "keys": ["f1"], "command": "keys_cheatsheet" },
+    { "keys": ["shift+f1"], "command": "keys_search" },
 ]
