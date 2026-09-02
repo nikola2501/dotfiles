@@ -211,6 +211,14 @@
             "name": "GitGutter deleted",
             "scope": "markup.deleted.git_gutter",
             "foreground": "var(error)"
+        },
+        {
+            // Koristi ga cursor_word.py (view.add_regions). Bez ovog pravila
+            // highlight reci pod kurzorom se ne vidi. #404040 je ista boja
+            // koju CursorWord dobije u nvim temi.
+            "name": "Cursor word (cursor_word.py)",
+            "scope": "cursorword",
+            "background": "#404040"
         }
     ]
 }
