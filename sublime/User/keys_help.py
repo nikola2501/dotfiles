@@ -20,16 +20,19 @@ Grupni // komentar iznad bloka mapa se NE koristi kao opis — to je proza o
 celoj grupi, i kao opis pojedine mape daje besmislice. Sekcija se vidi u
 drugom redu unosa.
 
-Sortiranje je moje, ne ST-ovo. ST-ov fuzzy matcher je subsequence koji jako
-ceni poklapanja na granici reci, pa mu se "git" lepo poklopi sa "**g**s
-**i**nterface **t**oggle help" i to izbaci ispred "git: commit".
-show_quick_panel nema flag za sortiranje, a rangiranje se ne moze preuzeti
-dok ST filtrira — zato upit ide kroz input panel, ja rangiram fzf-ovim
-principima (kontinuirano poklapanje > granica reci > raspršeno, ranije je
-bolje, krace je bolje), pa mu dam vec sortiranu listu.
+Rangiranje radi fzf, ne ST i ne ja. ST-ov matcher je subsequence koji jako
+ceni poklapanja na granici reci, pa mu se "git" poklopi sa "**g**s
+**i**nterface **t**oggle help" i to izbaci ispred "git: commit", a
+show_quick_panel nema flag za sortiranje — dok ST filtrira, poredak nije
+moj. Prvo sam napisao svoj scorer i to je bila greska: `fzf --filter QUERY`
+radi isto neinteraktivno, bez TTY-a, algoritmom testiranim neuporedivo vise
+od bilo cega mog.
 
-Vise reci u upitu je AND: "pr diff" mora da poklopi oba tokena. Prazan upit
-daje sve mape, moje pre GitSavvy-jevih.
+Upit ide kroz input panel, kroz `fzf --filter`, pa u quick panel vec
+sortiran. Vise reci je AND (fzf tako radi): "pr diff" ili "harpoon 3" suze
+na jedno. Prazan upit daje sve mape.
+
+Bez fzf-a ostaje obicno substring filtriranje — bez rangiranja, ali radi.
 
     keys_search       upit -> rangirani rezultati -> enter izvrsi
     keys_cheatsheet   regeneriraj i otvori KEYS.md (bin/dot-keys)
@@ -61,12 +64,12 @@ GS_VIEWS = {
     "git_savvy.status_view": "GitSavvy status",
 }
 
-WORD_START = re.compile(r"[^A-Za-z0-9]")
-
-# Koliko vredi to da je mapa izvrsiva u trenutnom kontekstu. Dovoljno da
-# potisne tiebreak duzine, ali ne toliko da sakrije bukvalno poklapanje iz
-# drugog lane-a.
-CONTEXT_BONUS = 500
+FZF_PATHS = (
+    "/opt/homebrew/bin/fzf",
+    "/usr/local/bin/fzf",
+    os.path.expanduser("~/.fzf/bin/fzf"),
+    "/usr/bin/fzf",
+)
 
 SECTION_RE = re.compile(r"^//\s*---+\s*(.*?)\s*---+\s*$")
 TRAILING_RE = re.compile(r"//\s*(.+?)\s*$")
@@ -78,49 +81,37 @@ def _strip_jsonc(text):
     return re.sub(r",(\s*[\]}])", r"\1", text)
 
 
-def _token_score(token, text, lower):
-    """fzf-ovi principi: kontinuirano > granica reci > raspršeno."""
-    pos = lower.find(token)
-    if pos >= 0:
-        score = 1000 + 12 * len(token)
-        if pos == 0:
-            score += 400                       # pocetak celog unosa
-        elif WORD_START.match(text[pos - 1]):
-            score += 250                       # pocetak reci
-        return score - min(pos, 60) * 2        # sto ranije, to bolje
-
-    idx, first, last, consecutive, boundary = 0, None, None, 0, 0
-    prev = -2
-    for char in token:
-        idx = lower.find(char, idx)
-        if idx < 0:
-            return None
-        if first is None:
-            first = idx
-        if idx == prev + 1:
-            consecutive += 1
-        if idx == 0 or WORD_START.match(text[idx - 1]):
-            boundary += 1
-        prev = last = idx
-        idx += 1
-    span = last - first + 1
-    return (100 + 25 * consecutive + 15 * boundary
-            - 3 * (span - len(token)) - min(first, 40))
+def _fzf_bin():
+    found = shutil.which("fzf")
+    if found:
+        return found
+    for path in FZF_PATHS:
+        if os.path.isfile(path) and os.access(path, os.X_OK):
+            return path
+    return None
 
 
-def _score(query, text):
-    """Score ili None. Vise tokena je AND — svi moraju da se poklope."""
-    tokens = [t for t in query.lower().split() if t]
-    if not tokens:
-        return 0
-    lower = text.lower()
-    total = 0
-    for token in tokens:
-        part = _token_score(token, text, lower)
-        if part is None:
-            return None
-        total += part
-    return total - len(text) * 0.5             # krace je bolje, tiebreak
+def _fzf_rank(query, triggers):
+    """Indeksi u fzf poretku, ili None ako fzf nije nadjen."""
+    binary = _fzf_bin()
+    if not binary:
+        return None
+    # indeks u prvoj koloni, fzf poklapa samo drugu (--nth=2..), pa je
+    # mapiranje rezultata nazad egzaktno i kad su dva trigger-a ista
+    payload = "".join("{}\t{}\n".format(i, t) for i, t in enumerate(triggers))
+    try:
+        out = subprocess.run(
+            [binary, "--filter", query, "--delimiter", "\t", "--nth", "2.."],
+            input=payload.encode("utf-8"),
+            stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, timeout=10)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    order = []
+    for line in out.stdout.decode("utf-8", "replace").splitlines():
+        head_col = line.split("\t", 1)[0]
+        if head_col.isdigit():
+            order.append(int(head_col))
+    return order
 
 
 def _packages_dir():
@@ -305,26 +296,28 @@ class KeysSearchCommand(sublime_plugin.WindowCommand):
             self.on_done, self.on_change, None)
 
     def _ranked(self, query):
-        # Kontekst odlucuje ko je "moj" lane: u obicnom fajlu GitSavvy view
-        # tasteri se ne mogu ni izvrsiti, pa idu nize; u GitSavvy view-u su
-        # oni ono sto trazim. Nista se ne izbacuje iz spiska, samo se rangira
-        # drugacije — inace jednoslovni GitSavvy tasteri pobede na tiebreak-u
-        # duzine i "git" izbaci "F — git: diff" ispred "git status".
         prefer_gs = _in_gitsavvy_view(self.window)
+
+        def in_context(index):
+            # GitSavvy view tasteri se iz obicnog fajla ne mogu ni izvrsiti,
+            # pa idu nize; u njegovom view-u je obrnuto. Nista se ne izbacuje
+            # iz spiska, samo se rangira drugacije.
+            return self.actions[index][3] == prefer_gs
+
         if not query.strip():
-            order = sorted(range(len(self.items)),
-                           key=lambda i: (self.actions[i][3] != prefer_gs, i))
-            return order
-        scored = []
-        for index, action in enumerate(self.actions):
-            score = _score(query, action[2])
-            if score is None:
-                continue
-            if action[3] == prefer_gs:
-                score += CONTEXT_BONUS
-            scored.append((score, index))
-        scored.sort(key=lambda pair: (-pair[0], pair[1]))
-        return [index for _score_, index in scored]
+            return sorted(range(len(self.items)),
+                          key=lambda i: (not in_context(i), i))
+
+        triggers = [action[2] for action in self.actions]
+        order = _fzf_rank(query, triggers)
+        if order is None:
+            self.window.status_message(
+                "keys: fzf nije nadjen (brew install fzf) — filtriram bez rangiranja")
+            needle = query.lower()
+            order = [i for i, t in enumerate(triggers) if needle in t.lower()]
+
+        # stabilno: fzf poredak ostaje unutar grupe, kontekst odlucuje grupu
+        return sorted(order, key=lambda i: not in_context(i))
 
     def on_change(self, query):
         order = self._ranked(query)
