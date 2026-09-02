@@ -300,6 +300,7 @@ can auto-refresh the quickfix buffer when a background build finishes. You press
 ./install-sublime.sh              # link the User/ config
 ./install-sublime.sh --dry-run    # see what it would touch first
 ./install-sublime.sh --prune      # also remove packages not in the list
+./install-sublime.sh --force --prune  # link first, then prune (see below)
 ./install-sublime.sh --uninstall
 ```
 
@@ -313,7 +314,7 @@ script locates per OS (`~/.config/sublime-text` on Linux,
 whatever is missing on the next launch. The list is deliberately small:
 
 `Debugger` · `Git blame` · `GitSavvy` · `Harpoon` · `LSP` (+ `clangd`, `gopls`,
-`rust-analyzer`) · `Odin` · `Package Control`
+`rust-analyzer`) · `MarkdownPreview` · `Odin` · `Package Control` · `Terraform`
 
 No CTags either — LSP does the same job from a real index rather than a tags
 file, and its `.tags` entries have been taken out of the exclude patterns.
@@ -323,21 +324,67 @@ were the Run/Debug code lens in Rust, the run-test lens in Go, and Debugger's
 external terminal. `User/Debugger.sublime-settings` sets `external_terminal` to
 `platform` so Debugger stops asking for it.
 
-No theme or colour-scheme packages: the active scheme is
-`User/mytheme/Cyanide - Matrix.tmTheme`, a local file, and the UI theme is
-Sublime's built-in Default Dark. `--prune` moves anything not on the list into
-`Installed Packages/.removed-<timestamp>/` rather than deleting it.
+No colour-scheme packages: the active scheme is
+`User/mytheme/Cyanide - Matrix.tmTheme`, a local file, so it survives on any
+machine. The UI theme is `Cyanide - Matrix.sublime-theme`, which comes from the
+hand-installed `Theme - Cyanide` — see the next section.
+
+### Hand-installed packages and `--prune`
+
+`--prune` moves anything not on the list into
+`Installed Packages/.removed-<timestamp>/` rather than deleting it. Two things
+make that safe to run:
+
+**`sublime/prune-keep.txt`** names packages installed by hand rather than by
+Package Control — currently `HCL.tmLanguage`, `protobuf-syntax-highlighting`
+and `Theme - Cyanide`. They cannot go in `installed_packages`: Package Control
+does not know them, cannot install them, and deletes them as orphans. Without
+this file a single `--prune` removes them and nothing ever brings them back.
+
+**The link check.** Sublime reads the `User/` copy of
+`Package Control.sublime-settings`; `--prune` reads the repo's. If they are not
+the same file the two disagree — prune moves a package away, Package Control
+sees it missing from *its* list and downloads it again, and every run drops
+another `.removed-*` directory. So `--prune` refuses unless that file is a
+symlink into the repo. Link it and prune in one go with
+`--force --prune`.
 
 ### Settings and keymaps
 
 | file | scope |
 |---|---|
 | `Preferences.sublime-settings` | everything shared |
-| `Preferences (Linux/OSX).sublime-settings` | display only — font size, UI scale |
+| `Preferences (Linux/OSX).sublime-settings` | display only — `ui_scale`, nothing else |
 | `Default.sublime-keymap` | **all platforms** — one file, same keys everywhere |
 
 There are deliberately no `Default (Linux)` / `Default (OSX)` keymaps. One file
 means one place to change a shortcut, and the same key on every machine.
+
+**`font_size` stays in the shared file, never in a platform one.** Sublime's
+"Font: Larger" (`Cmd+=` / `Ctrl+=`) writes `font_size` into
+`Preferences.sublime-settings`, and a `font_size` in
+`Preferences (OSX).sublime-settings` layers over it — so the keystroke appears to
+do nothing. Displays differ in pixel density, not in preferred point size, so
+`ui_scale` is the per-machine knob: 1.5 on macOS here, 1.2 on Linux.
+
+### Making the UI bigger
+
+The editor font and the UI are separate. Three levers, coarsest first:
+
+| lever | scope |
+|---|---|
+| `ui_scale` | the whole UI — text, icons, padding, scrollbars |
+| theme options (`large_ui_font`, `tabs_large`, `large_scroll_bars`) | what the theme chooses to expose |
+| `font.size` rules in `mytheme/Cyanide - Matrix.sublime-theme` | any class, any size |
+
+`ui_scale` first: it scales padding along with the text, so the sidebar does not
+end up cramped around larger glyphs. `large_ui_font` is fixed at 14px and only
+reaches `sidebar_label`, `label_control` and `tab_label` — go to explicit
+`font.size` rules for anything else. That theme file already overrides the
+same-named one in the hand-installed `Theme - Cyanide` package, because Sublime
+merges themes by filename with `User/` winning.
+
+`ui_scale` needs a restart. Theme options apply as soon as you save.
 
 | key | does |
 |---|---|
@@ -346,6 +393,9 @@ means one place to change a shortcut, and the same key on every machine.
 | `shift+f12` | find references (LSP's, replacing the built-in) |
 | `shift+f8` | switch build system to UniversalGit |
 | `shift+f9` | switch build system to Tenet |
+| `ctrl+shift+s` | GitSavvy: status (the `git status` equivalent) |
+| `ctrl+shift+,` | GitSavvy: inline diff — `[a]`/`[b]` toggles before/after, `[n]`/`[p]` walks the file history |
+| `alt+1` / `alt+2` | focus pane 1 / 2 — **carried over, see the caveat below** |
 | `ctrl+alt+a` | harpoon: mark this file (again to unmark) |
 | `ctrl+alt+1..9` | harpoon: jump to slot N |
 | `ctrl+alt+e` | harpoon: edit the mark list as a buffer |
@@ -378,6 +428,13 @@ finds next, `f11` is full screen on Linux. And do not re-bind these either:
 | `ctrl+1..9` | focus pane | both |
 | `alt+1..9` | select tab | Linux |
 | `super+1..9` | select tab | macOS |
+
+**The `alt+1` / `alt+2` caveat.** Those two bindings came over from the old
+`Default (OSX).sublime-keymap` and they break both rules in the table above:
+`ctrl+1..9` already focuses panes on both platforms, so they are redundant, and
+on Linux they take `alt+1..9` away from tab selection. On macOS bare `alt` is
+Option, so they type `¡` and `™` instead of switching panes. Kept on purpose —
+delete the two lines from `Default.sublime-keymap` to get the defaults back.
 
 ## The Helix fork
 

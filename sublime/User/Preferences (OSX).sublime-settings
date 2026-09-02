@@ -1,4 +1,7 @@
 {
-	// Display-dependent only. Retina handles scaling, so no ui_scale here.
-	"font_size": 14,
+	// Display-dependent only. font_size deliberately does NOT live here: Sublime's
+	// "Font: Larger"/Cmd+= writes to Preferences.sublime-settings, and a font_size
+	// in this file layers over it, so the keystroke would look broken. Use
+	// ui_scale to absorb the difference between displays instead.
+	"ui_scale": 1.5,
 }

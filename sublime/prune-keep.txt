@@ -1,0 +1,13 @@
+# Packages installed by hand, not by Package Control.
+#
+# --prune removes anything in Installed Packages/ or Packages/ that is not in
+# User/Package Control.sublime-settings. These cannot go in that list — Package
+# Control does not know them, and would try to install them and fail. Without
+# this file a single --prune deletes them and nothing ever brings them back.
+#
+# One name per line, exactly as the directory or .sublime-package is named.
+# Blank lines and # comments are ignored.
+
+HCL.tmLanguage
+protobuf-syntax-highlighting
+Theme - Cyanide

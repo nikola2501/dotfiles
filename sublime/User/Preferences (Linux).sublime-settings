@@ -1,5 +1,4 @@
 {
-	// Display-dependent only. Everything else is in Preferences.sublime-settings.
-	"font_size": 16,
+	// Display-dependent only. See the note in Preferences (OSX) about font_size.
 	"ui_scale": 1.2,
 }

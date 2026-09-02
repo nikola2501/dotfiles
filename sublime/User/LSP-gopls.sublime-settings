@@ -1,5 +1,20 @@
 {
-    "command": ["/usr/bin/gopls"],
+    // Resolved from PATH rather than hardcoded: install.sh puts ~/.local/bin on
+    // PATH, and that is where gopls lives here. An absolute path pins this file
+    // to one machine — the previous /usr/bin/gopls does not exist on macOS.
+    "command": ["gopls"],
+    // Use the gopls on PATH instead of letting the package download its own.
     "manageGoplsBinary": false,
     "enabled": true,
+    "env": {
+        "GOPRIVATE": "github.com/cko-*"
+    },
+    "settings": {
+        "gofumpt": true,
+        "staticcheck": true,
+        // Explicitly unset two options gopls no longer accepts. Without this,
+        // gopls errors out on a stale value inherited from an older config.
+        "memoryMode": null,
+        "noSemanticNumber": null
+    }
 }

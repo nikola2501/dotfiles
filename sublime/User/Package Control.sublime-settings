@@ -1,26 +1,39 @@
 {
-	// Package Control installs everything listed here on a fresh machine.
+	// Package Control installs everything listed here on a fresh machine, and
+	// removes anything installed that is NOT listed (remove_orphaned defaults to
+	// true). So this list is the single source of truth for packed packages —
+	// keep it in sync or Sublime and install-sublime.sh --prune will fight.
+	//
+	// Manually installed packages are NOT here, because Package Control cannot
+	// install them and would delete them. They are protected by prune-keep.txt
+	// one level up instead. See that file.
+	//
 	// Themes and colour schemes are deliberately absent: the active scheme is
-	// User/mytheme/Cyanide - Matrix.tmTheme, a local file, and the UI theme is
-	// Sublime's built-in Default Dark.
+	// User/mytheme/Cyanide - Matrix.tmTheme, a local file, and the UI theme
+	// comes from the manually installed Theme - Cyanide.
 	"installed_packages":
 	[
 		"Debugger",
 		"Git blame",
 		"GitSavvy",
+		// Unverified: not confirmed to exist on the Package Control channel.
+		// If it does not, Package Control skips it silently.
 		"Harpoon",
 		"LSP",
 		"LSP-clangd",
 		"LSP-gopls",
 		"LSP-rust-analyzer",
+		"MarkdownPreview",
 		"Odin",
 		"Package Control",
+		"Terraform",
 	],
 	"bootstrapped": true,
 	"downloader_precedence":
 	{
 		"osx": ["curl", "urllib", "oscrypto"],
 		"linux": ["curl", "urllib", "oscrypto", "wget"],
+		"windows": ["wininet"],
 	},
 	"in_process_packages":
 	[

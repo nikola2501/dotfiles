@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# install.sh — set this machine up from these dotfiles. Linux and macOS.
+# install-helix.sh — set this machine up from these dotfiles. Linux and macOS.
 #
-#   ./install.sh              symlink the helix config and the bin/ scripts
-#   ./install.sh --helix      also clone+build the Helix fork and enable `hxp`
-#   ./install.sh --uninstall  remove the symlinks and restore the newest backups
-#   ./install.sh --dry-run    show what would happen, change nothing
-#   ./install.sh --force      replace differing files without asking
+#   ./install-helix.sh              symlink the helix config and the bin/ scripts
+#   ./install-helix.sh --helix      also clone+build the Helix fork and enable `h`
+#   ./install-helix.sh --uninstall  remove the symlinks and restore the newest backups
+#   ./install-helix.sh --dry-run    show what would happen, change nothing
+#   ./install-helix.sh --force      replace differing files without asking
 #
 # Your ~/.zshrc is never replaced. The installer only appends one small marked
 # block to it (PATH + the `h` alias) and rewrites just that block on re-runs.
@@ -29,7 +29,7 @@ while [ $# -gt 0 ]; do
     --uninstall) UNINSTALL=1 ;;
     --dry-run)   DRY=1 ;;
     --force)     FORCE=1 ;;
-    -h|--help)   sed -n '2,12p' "$0"; exit 0 ;;
+    -h|--help)   sed -n '2,/^$/p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
     *) echo "unknown option: $1" >&2; exit 1 ;;
   esac
   shift
@@ -153,7 +153,7 @@ END_MARK="# <<< dotfiles: helix <<<"
 zsh_block() {
   cat <<'BLOCK'
 # >>> dotfiles: helix >>>
-# Added by dotfiles/install.sh. Edit the installer, not this block — it is
+# Added by dotfiles/install-helix.sh. Edit the installer, not this block — it is
 # rewritten in place on every run. Delete it by hand or with --uninstall.
 export PATH="$HOME/.local/bin:$PATH"          # hx-make, hx-harpoon
 HELIX_FORK="${HELIX_FORK:-$HOME/repos/me/helix-plugin}"
@@ -221,7 +221,7 @@ if [ "$DO_HELIX" -eq 1 ]; then
     say "fetching and building tree-sitter grammars (this is the slow part)..."
     ( cd "$HELIX_FORK" && HELIX_RUNTIME="$HELIX_FORK/runtime" ./target/opt/hx --grammar fetch >/dev/null )
     ( cd "$HELIX_FORK" && HELIX_RUNTIME="$HELIX_FORK/runtime" ./target/opt/hx --grammar build >/dev/null )
-    say "built $HELIX_FORK/target/opt/hx  —  the hxp alias picks it up automatically"
+    say "built $HELIX_FORK/target/opt/hx  —  the h alias picks it up automatically"
   fi
 fi
 

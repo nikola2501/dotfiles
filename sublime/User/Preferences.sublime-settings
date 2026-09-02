@@ -1,23 +1,49 @@
 {
-	// Shared across machines. Anything that depends on the display (font size,
-	// UI scale) lives in Preferences (Linux)/(OSX).sublime-settings instead —
-	// Sublime merges those over this file automatically.
+	// Shared across machines, font_size included: Sublime's "Font: Larger" writes
+	// it here, and a copy in Preferences (Linux)/(OSX).sublime-settings would
+	// layer over it and make that keystroke look broken. Those files carry
+	// ui_scale only — Sublime merges them over this one automatically.
+	"ui_scale": 1.3,
+
 	"ignored_packages": [
 	],
 
 	// A local file, not a package, so it survives on any machine.
 	"color_scheme": "Packages/User/mytheme/Cyanide - Matrix.tmTheme",
-	"theme": "Default Dark.sublime-theme",
+	// From the manually installed Theme - Cyanide (see prune-keep.txt).
+	"theme": "Cyanide - Matrix.sublime-theme",
 
-	"index_files": true,
+	"font_face": "Monaco",
+
+	// Options the Cyanide - Matrix theme exposes. large_ui_font is fixed at 14px
+	// and only reaches sidebar_label, label_control and tab_label; for other
+	// sizes or classes add font.size rules to mytheme/Cyanide - Matrix.sublime-theme.
+	/*"large_ui_font": true,*/
+	/*"tabs_large": true,*/
+
+	// Off on purpose: indexing a monorepo this size costs more than the
+	// goto-definition it buys, and LSP already answers that question.
+	"index_files": false,
+
 	"highlight_line": true,
 	"relative_line_numbers": false,
 	"block_caret": false,
 	"caret_style": "blink",
 
+	// Indent guides (tackice) + bracket matching for the enclosing block.
+	"indent_guide_options": ["draw_normal", "draw_active"],
+	"match_brackets": true,
+	"match_brackets_content": true,
+	"match_brackets_square": true,
+	"match_brackets_braces": true,
+	"match_brackets_angle": false,
+
+	// Sublime user-level list settings REPLACE the defaults (per-project
+	// folder-level lists extend, but user-level does not), so the defaults are
+	// repeated here in full.
 	"folder_exclude_patterns": [".svn", ".git", ".hg", "CVS", ".Trash", ".Trash-*"],
 	"file_exclude_patterns": ["*.pyc", "*.pyo", "*.exe", "*.dll", "*.obj", "*.o", "*.a", "*.lib", "*.so", "*.dylib", "*.ncb", "*.sdf", "*.suo", "*.pdb", "*.idb", ".DS_Store", ".directory", "desktop.ini", "*.class", "*.psd", "*.db", "*.sublime-workspace"],
 	"binary_file_patterns": ["*.jpg", "*.jpeg", "*.png", "*.gif", "*.ttf", "*.tga", "*.dds", "*.ico", "*.eot", "*.pdf", "*.swf", "*.jar", "*.zip"],
 	"index_exclude_patterns": ["*.log"],
-	"font_size": 17,
+	"font_size": 11,
 }
