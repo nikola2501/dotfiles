@@ -6,5 +6,6 @@
     { "caption": "PR: git status dashboard", "command": "gs_show_status" },
     { "caption": "PR: inline diff current file", "command": "gs_inline_diff" },
     { "caption": "Keys: open cheatsheet (KEYS.md)", "command": "keys_cheatsheet" },
-    { "caption": "Keys: search bindings", "command": "keys_search" }
+    { "caption": "Keys: search bindings", "command": "keys_search" },
+    { "caption": "Keys: search bindings (incl. GitSavvy view keys)", "command": "keys_search_all" }
 ]

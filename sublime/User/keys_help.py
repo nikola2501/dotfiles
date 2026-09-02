@@ -20,9 +20,15 @@ Grupni // komentar iznad bloka mapa se NE koristi kao opis — to je proza o
 celoj grupi, i kao opis pojedine mape daje besmislice. Sekcija se vidi u
 drugom redu unosa.
 
-Pretraga hvata i taster i opis, jer su oba u prvom redu unosa.
+Pretraga hvata taster i opis, i samo njih: QuickPanelItem poklapa upit
+isključivo sa `trigger`-om, pa ime komande i sekcija ne ucestvuju u
+matchovanju. ST-ov fuzzy matcher je subsequence i jako ceni poklapanja na
+granici reci, pa bi "git" inace izbacio "focus_group ... Pane navigation"
+ispred pravih git mapa. show_quick_panel nema flag za sortiranje, pa je
+kontrola nad senom jedino sto imam.
 
     keys_search       quick panel, enter izvrsi
+    keys_search_all   isto, ali uvek i GitSavvy view tasteri
     keys_cheatsheet   regeneriraj i otvori KEYS.md (bin/dot-keys)
 """
 
@@ -151,7 +157,7 @@ def _parse_keymap(text, default_section):
         try:
             entry = json.loads(chunk)
         except ValueError:
-            buf, pending = None, None
+            buf, pending = None, []
             continue
         keys = entry.get("keys") or []
         command = entry.get("command")
@@ -192,7 +198,15 @@ def _gitsavvy_bindings():
     return out
 
 
-def _entries():
+def _in_gitsavvy_view(window):
+    view = window.active_view()
+    if view is None:
+        return False
+    settings = view.settings()
+    return any(settings.get(name) for name in GS_VIEWS)
+
+
+def _entries(include_gitsavvy):
     captions = _captions()
     user_keymap = os.path.join(sublime.packages_path(), "User",
                                "Default.sublime-keymap")
@@ -200,7 +214,8 @@ def _entries():
     if os.path.exists(user_keymap):
         with open(user_keymap) as handle:
             binds = _parse_keymap(handle.read(), "Moje mape")
-    binds += _gitsavvy_bindings()
+    if include_gitsavvy:
+        binds += _gitsavvy_bindings()
 
     items, actions = [], []
     for keys, command, args, desc, section in binds:
@@ -208,15 +223,40 @@ def _entries():
         shown = command
         if args:
             shown += " " + json.dumps(args, ensure_ascii=False)
-        items.append(["{}   —   {}".format(keys, label),
-                      "{}   ·   {}".format(shown, section)])
+        # QuickPanelItem: samo `trigger` se poklapa sa upitom, `details` i
+        # `annotation` su prikaz. Zato taster i opis idu u trigger, a ime
+        # komande i sekcija ostaju van poklapanja — inace "git" scatter-matchuje
+        # "focus_group ... Pane naviga(t)ion" i takve besmislice.
+        gs_view = section.startswith("GitSavvy ") and "view-u" in section
+        kind = ((sublime.KIND_ID_NAVIGATION, "g", "GitSavvy view") if gs_view
+                else (sublime.KIND_ID_FUNCTION, "k", "Key"))
+        items.append(sublime.QuickPanelItem(
+            "{}   —   {}".format(keys, label),
+            details=shown,
+            annotation=section,
+            kind=kind))
         actions.append((command, args))
     return items, actions
 
 
 class KeysSearchCommand(sublime_plugin.WindowCommand):
+    """GitSavvy tasteri ulaze samo kad je njegov view aktivan.
+
+    ST-ov fuzzy matcher uvek sam rangira rezultate — show_quick_panel nema
+    flag za sortiranje — a on scatter-match ceni jako: "git" mu se poklopi sa
+    "**g**s **i**nline diff **t**oggle side" i to izbaci ispred "git: commit".
+    Rangiranje ne mogu da promenim, ali mogu da ne stavljam u spisak 103
+    GitSavvy view tastera koji se iz obicnog fajla ne mogu ni izvrsiti.
+    Cim si u GitSavvy view-u, oni su relevantni i vracaju se.
+
+    keys_search_all ih uvek ukljuci, ako mi zatrebaju za citanje.
+    """
+
+    all_bindings = False
+
     def run(self):
-        items, actions = _entries()
+        include = self.all_bindings or _in_gitsavvy_view(self.window)
+        items, actions = _entries(include)
         if not items:
             self.window.status_message("keys: nisam nasao ni jednu mapu")
             return
@@ -229,7 +269,14 @@ class KeysSearchCommand(sublime_plugin.WindowCommand):
             # application, pa rade i TextCommand mape (npr. GitSavvy `o`)
             self.window.run_command(command, args)
 
-        self.window.show_quick_panel(items, picked)
+        self.window.show_quick_panel(
+            items, picked,
+            placeholder="{} mapa{}".format(
+                len(items), "" if include else " (bez GitSavvy view tastera)"))
+
+
+class KeysSearchAllCommand(KeysSearchCommand):
+    all_bindings = True
 
 
 def _dot_keys_bin():
