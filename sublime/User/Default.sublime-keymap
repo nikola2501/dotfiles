@@ -34,6 +34,19 @@
     { "keys": ["shift+f9"], "command": "set_build_system",
       "args": { "file": "Packages/User/Tenet.sublime-build" } },
 
+    // --- GitSavvy ---
+    // The equivalent of `git status`.
+    { "keys": ["ctrl+shift+s"], "command": "gs_show_status" },
+    // The inline diff has the [a]/[b] toggle to see the code in one of the two
+    // states, before and after, and [n]/[p] to walk the file history.
+    { "keys": ["ctrl+shift+,"], "command": "gs_inline_diff" },
+
+    // --- Pane navigation ---
+    // Bare alt on macOS is Option and types characters, so these two may insert
+    // junk there rather than switching panes. Kept because they work on Linux.
+    { "keys": ["alt+1"], "command": "focus_group", "args": { "group": 0 } },
+    { "keys": ["alt+2"], "command": "focus_group", "args": { "group": 1 } },
+
     // --- Harpoon ---
     // Same letters as the Helix side (<space>za/ze/zl/zc, A-1..A-9) so the
     // muscle memory carries between editors. ctrl+alt is free on both platforms
@@ -54,4 +67,25 @@
     { "keys": ["ctrl+alt+7"], "command": "harpoon_goto", "args": { "index": 7 } },
     { "keys": ["ctrl+alt+8"], "command": "harpoon_goto", "args": { "index": 8 } },
     { "keys": ["ctrl+alt+9"], "command": "harpoon_goto", "args": { "index": 9 } },
+
+    // --- CTags (package removed) ---
+    // Kept as a record. The CTags package is no longer in
+    // Package Control.sublime-settings, so none of these commands exist —
+    // uncommenting them without reinstalling CTags does nothing.
+    // { "keys": ["f12"], "command": "navigate_to_definition" },
+    // { "keys": ["shift+f12"], "command": "jump_back" },
+    // { "keys": ["super+shift+t"], "command": "search_for_definition" },
+    // { "keys": ["super+alt+r"], "command": "rebuild_tags" },
+    // { "keys": ["ctrl+t", "ctrl+d"], "command": "ctags_debug_jump" },
+
+    // --- PR REVIEW (pr_review.py) ---------------------------------------
+    // Ekvivalent nvim flow-a: diff protiv merge-base bazne grane, ne protiv
+    // vrha te grane. Baza se detektuje automatski (origin/HEAD -> origin/main
+    // -> origin/master -> main -> master), pinuje se sa "pr_review_base" u
+    // Preferences ili u .sublime-project.
+    // U diff view-u: j/k hunk, N/P fajl, o pravi fajl, O bazna revizija, ? help.
+    { "keys": ["ctrl+shift+d"], "command": "pr_diff" },
+    { "keys": ["ctrl+shift+v"], "command": "pr_diff_file" },
+    { "keys": ["ctrl+shift+b"], "command": "pr_diff_pick_base" },
+    { "keys": ["ctrl+shift+c"], "command": "pr_commits" },
 ]

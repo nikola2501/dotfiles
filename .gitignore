@@ -4,3 +4,10 @@ sublime/User/Package Control.user-ca-bundle
 sublime/User/GitSavvy/
 sublime/User/Terminus/
 sublime/User/*.bak.*
+
+# Python bytecode (py_compile na Sublime pluginima)
+__pycache__/
+*.pyc
+
+# Helix editor state (recent-files.txt)
+.helix/

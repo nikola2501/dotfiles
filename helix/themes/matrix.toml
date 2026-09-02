@@ -1,0 +1,212 @@
+# matrix — Helix tema, ista paleta kao moj nvim colorscheme i Sublime tema.
+#
+# Poreklo: sublime/User/mytheme/Cyanide - Matrix.tmTheme (Cyanide "Neon"),
+# pa portovano u ~/.config/nvim/colors/matrix.lua, pa ovde. Kad menjam boje,
+# menjam na sva tri mesta.
+#
+# Lane-ovi (paleta ima tri hue-a, podeljeni da se ne mesaju):
+#   green  #00FF41  keywords, storage, brojevi, konstante, escape sekvence
+#   blue   #00BFFF  string literali + genericki plavi lane (git change, info)
+#   crimson #FF0055 komentari i matching brackets
+#   sivi    fg #CCCCCC varijable, fg_type #DDDDDD tipovi,
+#           fg_func #EFEFEF funkcije, fg_op #AAAAAA operatori/interpunkcija
+#
+# Instalacija: fajl ide u ~/.config/helix/themes/ (install-helix.sh to radi),
+# uz `theme = "matrix"` u config.toml.
+
+# ─── Syntax ──────────────────────────────────────────────────────────────────
+"attribute"                     = "green"
+
+# komentari nisu italic: tmTheme nema fontStyle za `comment`
+"comment"                       = "comment"
+"comment.line"                  = "comment"
+"comment.line.documentation"    = "comment"
+"comment.block"                 = "comment"
+"comment.block.documentation"   = "comment"
+
+"constant"                      = "green"
+"constant.builtin"              = "green"
+"constant.builtin.boolean"      = "green"
+"constant.numeric"              = "green"
+# constant.character je literal, ali escape sekvenca ostaje zelena da se
+# vidi unutar plavog stringa
+"constant.character"            = "literal"
+"constant.character.escape"     = { fg = "green", modifiers = ["bold"] }
+
+"constructor"                   = "fg_type"
+
+"diff.plus"                     = "green"
+"diff.minus"                    = "error"
+"diff.delta"                    = "blue"
+
+"function"                      = "fg_func"
+"function.builtin"              = "fg_func"
+"function.method"               = "fg_func"
+"function.macro"                = "green"
+"function.special"              = "green"
+
+# tema deli keyword (zeleno) od keyword.operator (#AAA)
+"keyword"                       = "green"
+"keyword.control"               = "green"
+"keyword.control.conditional"   = "green"
+"keyword.control.repeat"        = "green"
+"keyword.control.import"        = "green"
+"keyword.control.return"        = "green"
+"keyword.control.exception"     = "green"
+"keyword.directive"             = "green"
+"keyword.function"              = "green"
+"keyword.storage"               = "green"
+"keyword.storage.type"          = "green"
+"keyword.storage.modifier"      = "green"
+"keyword.operator"              = "fg_op"
+
+"label"                         = "green"
+"namespace"                     = "fg_type"
+
+"operator"                      = "fg_op"
+"punctuation"                   = "fg_op"
+"punctuation.bracket"           = "fg_op"
+"punctuation.delimiter"         = "fg_op"
+"punctuation.special"           = "green"
+
+"special"                       = "fg_func"
+
+"string"                        = "literal"
+"string.regexp"                 = "literal"
+"string.special"                = "literal"
+"string.special.path"           = "literal"
+"string.special.symbol"         = "green"
+"string.special.url"            = { fg = "literal", modifiers = ["underlined"] }
+
+"tag"                           = "fg"
+
+"type"                          = "fg_type"
+"type.builtin"                  = "fg_type"
+"type.enum.variant"             = "green"
+
+"variable"                      = "fg"
+"variable.builtin"              = { fg = "fg", modifiers = ["italic"] }
+"variable.other.member"         = "fg"
+# tmTheme stavlja variable.parameter u zeleno pravilo, uz brojeve i konstante
+"variable.parameter"            = "green"
+
+# Markup
+"markup.bold"                   = { fg = "fg", modifiers = ["bold"] }
+"markup.heading"                = { fg = "green", modifiers = ["bold"] }
+"markup.heading.1"              = { fg = "green", modifiers = ["bold"] }
+"markup.heading.2"              = { fg = "green", modifiers = ["bold"] }
+"markup.heading.3"              = { fg = "green", modifiers = ["bold"] }
+"markup.heading.4"              = "green"
+"markup.heading.5"              = "green"
+"markup.heading.6"              = "green"
+"markup.italic"                 = { fg = "fg", modifiers = ["italic"] }
+"markup.link.label"             = "green"
+"markup.link.text"              = "green"
+"markup.link.url"               = { fg = "blue", modifiers = ["underlined"] }
+"markup.list"                   = "green"
+"markup.list.checked"           = { fg = "green", modifiers = ["bold"] }
+"markup.list.unchecked"         = "fg_op"
+"markup.quote"                  = { fg = "comment", modifiers = ["italic"] }
+"markup.raw"                    = "green"
+"markup.raw.block"              = "green"
+"markup.raw.inline"             = "green"
+"markup.strikethrough"          = { fg = "fg_op", modifiers = ["crossed_out"] }
+
+# ─── UI ──────────────────────────────────────────────────────────────────────
+"ui.background"                 = { bg = "bg" }
+"ui.background.separator"       = "separator"
+
+"ui.bufferline"                 = { fg = "fg_op", bg = "bg" }
+"ui.bufferline.active"          = { fg = "green", bg = "bg", modifiers = ["bold"] }
+"ui.bufferline.background"      = { bg = "bg" }
+
+# caret #39FF14 dolazi iz .sublime-color-scheme override-a, ne iz tmTheme-a
+"ui.cursor"                     = { fg = "bg", bg = "caret" }
+"ui.cursor.normal"              = { fg = "bg", bg = "caret" }
+"ui.cursor.primary"             = { fg = "bg", bg = "caret" }
+"ui.cursor.insert"              = { fg = "bg", bg = "green" }
+"ui.cursor.select"              = { fg = "bg", bg = "blue" }
+# matching brackets: crveno bold, kao brackets_foreground + "foreground bold"
+"ui.cursor.match"               = { fg = "bracket", modifiers = ["bold"] }
+
+"ui.cursorline.primary"         = { bg = "cursorline" }
+"ui.cursorline.secondary"       = { bg = "cursorline" }
+
+"ui.debug.active"               = "green"
+"ui.debug.breakpoint"           = "error"
+
+"ui.gutter"                     = { bg = "bg" }
+"ui.help"                       = { fg = "fg", bg = "float_bg" }
+"ui.highlight"                  = { bg = "selection" }
+
+# gutter je u temi #333333 = 1.5:1 na #0a0a0a; podignut, isto kao u nvim-u
+"ui.linenr"                     = "gutter"
+"ui.linenr.selected"            = { fg = "green", modifiers = ["bold"] }
+
+"ui.menu"                       = { fg = "fg", bg = "float_bg" }
+"ui.menu.scroll"                = { fg = "fg_op", bg = "cursorline" }
+"ui.menu.selected"              = { fg = "fg", bg = "selection", modifiers = ["bold"] }
+
+"ui.popup"                      = { fg = "fg", bg = "float_bg" }
+"ui.popup.info"                 = { fg = "fg", bg = "float_bg" }
+
+"ui.selection"                  = { bg = "selection" }
+"ui.selection.primary"          = { bg = "selection" }
+
+"ui.statusline"                 = { fg = "fg", bg = "float_bg" }
+"ui.statusline.inactive"        = { fg = "fg_op", bg = "bg" }
+"ui.statusline.normal"          = { fg = "fg", bg = "float_bg" }
+"ui.statusline.insert"          = { fg = "bg", bg = "green", modifiers = ["bold"] }
+"ui.statusline.select"          = { fg = "bg", bg = "blue", modifiers = ["bold"] }
+
+"ui.text"                       = "fg"
+"ui.text.focus"                 = { fg = "fg", modifiers = ["bold"] }
+"ui.text.info"                  = "fg"
+"ui.text.inactive"              = "fg_op"
+
+"ui.virtual.indent-guide"       = "guide"
+"ui.virtual.inlay-hint"         = { fg = "invisibles", modifiers = ["italic"] }
+"ui.virtual.jump-label"         = { fg = "bg", bg = "green", modifiers = ["bold"] }
+"ui.virtual.ruler"              = { bg = "cursorline" }
+"ui.virtual.whitespace"         = "invisibles"
+"ui.virtual.wrap"               = "invisibles"
+
+"ui.window"                     = "separator"
+
+"diagnostic"                    = { underline = { color = "warn", style = "curl" } }
+"diagnostic.error"              = { underline = { color = "error", style = "curl" } }
+"diagnostic.warning"            = { underline = { color = "warn", style = "curl" } }
+"diagnostic.info"               = { underline = { color = "blue", style = "curl" } }
+"diagnostic.hint"               = { underline = { color = "fg_op", style = "curl" } }
+
+"error"                         = { fg = "error", modifiers = ["bold"] }
+"warning"                       = "warn"
+"info"                          = "blue"
+"hint"                          = "fg_op"
+
+# ─── Palette ─────────────────────────────────────────────────────────────────
+# Neon set: green/blue/crimson su na saturaciji 100% i value 100%.
+[palette]
+bg          = "#0a0a0a"   # tmTheme background
+float_bg    = "#121212"   # .sublime-theme layer0.tint [18,18,18]
+cursorline  = "#1c1c1c"   # tema: #111111, podignuto
+selection   = "#333333"   # tema: #252525, podignuto
+guide       = "#2a2a2a"   # tema: #141414, podignuto
+gutter      = "#707070"   # tema: #333333 (1.5:1), podignuto
+separator   = "#1f7a35"   # tema nema ekvivalent
+invisibles  = "#6a6a6a"   # tmTheme invisibles
+
+fg          = "#cccccc"   # foreground, varijable, tagovi
+fg_type     = "#dddddd"   # entity.name.class, support.type
+fg_func     = "#efefef"   # entity.name.function, meta.function-call
+fg_op       = "#aaaaaa"   # keyword.operator, interpunkcija
+
+green       = "#00ff41"   # keywords, storage, brojevi, konstante
+blue        = "#00bfff"   # genericki plavi lane
+literal     = "#00bfff"   # string literali (u temi zeleni, moje odstupanje)
+comment     = "#ff0055"   # komentari (u temi plavi, moje odstupanje)
+bracket     = "#ff0055"   # brackets_foreground
+caret       = "#39ff14"   # caret iz .sublime-color-scheme override-a
+
+warn        = "#ffdd00"   # sublimelinter.mark.warning
+error       = "#ff2200"   # sublimelinter.mark.error

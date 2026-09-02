@@ -5,7 +5,8 @@
 #   ./install-sublime.sh --dry-run    show what would happen, change nothing
 #   ./install-sublime.sh --force      replace differing files without asking
 #   ./install-sublime.sh --prune      also remove installed packages that are
-#                                     not in Package Control.sublime-settings
+#                                     neither in Package Control.sublime-settings
+#                                     nor in sublime/prune-keep.txt
 #   ./install-sublime.sh --uninstall  remove the links, restore the backups
 #
 # Config files are symlinked, so editing them in Sublime edits this repo. Any
@@ -13,12 +14,21 @@
 # that differs from the repo's is never replaced without asking.
 #
 # Packages themselves are installed by Package Control on next launch, from the
-# installed_packages list in User/Package Control.sublime-settings.
+# installed_packages list in User/Package Control.sublime-settings. Packages you
+# installed by hand cannot go in that list — Package Control cannot install them
+# and deletes them as orphans — so name them in sublime/prune-keep.txt and
+# --prune leaves them alone.
+#
+# --prune refuses to run unless User/Package Control.sublime-settings is linked
+# to the repo's copy. Otherwise Sublime and this script read different lists and
+# each undoes the other: prune removes a package, Package Control downloads it
+# again, and every run drops another .removed-* directory.
 
 set -euo pipefail
 
 DOTFILES=$(cd "$(dirname "$0")" && pwd)
 SRC="$DOTFILES/sublime/User"
+KEEP="$DOTFILES/sublime/prune-keep.txt"
 STAMP=$(date +%Y%m%d-%H%M%S)
 DRY=0; FORCE=0; PRUNE=0; UNINSTALL=0
 
@@ -28,7 +38,7 @@ while [ $# -gt 0 ]; do
     --force)     FORCE=1 ;;
     --prune)     PRUNE=1 ;;
     --uninstall) UNINSTALL=1 ;;
-    -h|--help)   sed -n '2,18p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    -h|--help)   sed -n '2,/^$/p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
     *) echo "unknown option: $1" >&2; exit 1 ;;
   esac
   shift
@@ -50,6 +60,7 @@ skip() {
   case $1 in
     .DS_Store|.git|*.bak.*|*.bak-*) return 0 ;;
     "Package Control.user-ca-bundle") return 0 ;;
+    __pycache__|*.pyc) return 0 ;;      # bytecode plugina, ne konfiguracija
     GitSavvy|Terminus) return 0 ;;      # directories of generated colour schemes
     *) return 1 ;;
   esac
@@ -136,8 +147,47 @@ done
 if [ "$PRUNE" -eq 1 ]; then
   echo
   IP="$SUBL_DIR/Installed Packages"
-  want=$(sed -n 's/^[[:space:]]*"\(.*\)",\{0,1\}$/\1/p' "$SRC/Package Control.sublime-settings" \
+  PC_SRC="$SRC/Package Control.sublime-settings"
+  PC_DST="$DST/Package Control.sublime-settings"
+
+  # Sublime reads the User/ copy of this file; --prune reads the repo's. When
+  # they are not the same file the two disagree: prune moves a package away,
+  # Package Control sees it missing from ITS list and downloads it again, and
+  # the next run leaves another .removed-* directory behind. Refuse instead of
+  # looping. Linking it (answer y above, or --force) makes both read one list.
+  if [ ! -L "$PC_DST" ] || [ "$(readlink "$PC_DST")" != "$PC_SRC" ]; then
+    if [ "$DRY" -eq 1 ] && [ "$FORCE" -eq 1 ]; then
+      # --force would have linked it above, so preview the prune as if it had.
+      say "note  $(basename "$PC_DST") would be linked first, so prune can run"
+    else
+      say "NOT PRUNING  $PC_DST is not linked to the repo's copy."
+      say "             Package Control would reinstall whatever prune removes."
+      say "             Link it first, then prune:"
+      say "               ./install-sublime.sh --force --prune"
+      if [ "$DRY" -eq 1 ]; then PRUNE=0; else exit 1; fi
+    fi
+  fi
+fi
+
+if [ "$PRUNE" -eq 1 ]; then
+  want=$(sed -n 's/^[[:space:]]*"\(.*\)",\{0,1\}$/\1/p' "$PC_SRC" \
          | sed -n '/^[A-Za-z]/p')
+  # Packages installed by hand cannot go in installed_packages — Package Control
+  # does not know them, would fail to install them, and would delete them as
+  # orphans. They are named in prune-keep.txt instead, and prune skips them.
+  kept=0
+  pruned=0
+  if [ -f "$KEEP" ]; then
+    keep=$(sed -e 's/#.*//' -e 's/[[:space:]]*$//' "$KEEP" | sed -n '/./p')
+    if [ -n "$keep" ]; then
+      kept=$(printf '%s\n' "$keep" | wc -l | tr -d ' ')
+      want=$(printf '%s\n%s\n' "$want" "$keep")
+      say "protecting $kept hand-installed package(s) from $(basename "$KEEP"):"
+      printf '%s\n' "$keep" | while read -r k; do say "  $k"; done
+    fi
+  else
+    say "note  no $KEEP — hand-installed packages are NOT protected"
+  fi
   if [ -d "$IP" ]; then
     for p in "$IP"/*.sublime-package; do
       [ -e "$p" ] || continue
@@ -147,6 +197,7 @@ if [ "$PRUNE" -eq 1 ]; then
       run mkdir -p "$IP/.removed-$STAMP"
       run mv "$p" "$IP/.removed-$STAMP/"
       say "pruned $name"
+      pruned=$((pruned + 1))
     done
   fi
   # Unpacked packages live in Packages/ instead, and prune has to look there too
@@ -160,8 +211,13 @@ if [ "$PRUNE" -eq 1 ]; then
     run mkdir -p "$IP/.removed-$STAMP"
     run mv "$d" "$IP/.removed-$STAMP/"
     say "pruned $name (unpacked)"
+    pruned=$((pruned + 1))
   done
-  say "pruned packages are in Installed Packages/.removed-$STAMP — delete when happy"
+  if [ "$pruned" -eq 0 ]; then
+    say "nothing to prune — every installed package is accounted for"
+  else
+    say "$pruned pruned package(s) are in Installed Packages/.removed-$STAMP — delete when happy"
+  fi
 fi
 
 echo

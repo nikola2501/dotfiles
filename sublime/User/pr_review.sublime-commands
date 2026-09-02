@@ -1,0 +1,8 @@
+[
+    { "caption": "PR: diff vs base branch (all files)", "command": "pr_diff" },
+    { "caption": "PR: diff current file vs base branch", "command": "pr_diff_file" },
+    { "caption": "PR: diff vs branch...", "command": "pr_diff_pick_base" },
+    { "caption": "PR: commits in this PR", "command": "pr_commits" },
+    { "caption": "PR: git status dashboard", "command": "gs_show_status" },
+    { "caption": "PR: inline diff current file", "command": "gs_inline_diff" }
+]

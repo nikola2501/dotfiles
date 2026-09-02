@@ -9,7 +9,7 @@
 # theme = "yo_berry"
 # theme = "catppuccin_mocha"
 # theme = "kanagawa"
-theme = "atlas-ragnarok"
+theme = "matrix"
 # theme = "catppuccin_latte"
 
 [editor]
@@ -55,7 +55,7 @@ mode.select = "SELECT"
 [keys.normal]
 # >>> hx-kit >>>
 # Bindings for hx-make (quickfix / compile mode) and hx-harpoon (pinned files).
-# These are dotted keys destined for the [keys.normal] table; install.sh splices
+# These are dotted keys destined for the [keys.normal] table; install-helix.sh splices
 # them in between its markers, so re-running the installer updates them in place.
 
 # --- quickfix / compile mode ---
