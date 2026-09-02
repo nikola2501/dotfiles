@@ -21,6 +21,7 @@
 // f7 (build), f11 (full screen on Linux), f3 (find next).
 [
     // --- LSP ---
+    // Hover dokumentacija za simbol pod kursorom
     { "keys": ["f8"], "command": "lsp_hover",
       "context": [{ "key": "lsp.session_with_capability", "operator": "equal", "operand": "hoverProvider" }] },
     { "keys": ["f12"], "command": "lsp_symbol_definition",
@@ -29,8 +30,10 @@
       "context": [{ "key": "lsp.session_with_capability", "operator": "equal", "operand": "referencesProvider" }] },
 
     // --- Build systems ---
+    // Build system: UniversalGit
     { "keys": ["shift+f8"], "command": "set_build_system",
       "args": { "file": "Packages/User/UniversalGit.sublime-build" } },
+    // Build system: Tenet
     { "keys": ["shift+f9"], "command": "set_build_system",
       "args": { "file": "Packages/User/Tenet.sublime-build" } },
 
@@ -44,8 +47,8 @@
     // --- Pane navigation ---
     // Bare alt on macOS is Option and types characters, so these two may insert
     // junk there rather than switching panes. Kept because they work on Linux.
-    { "keys": ["alt+1"], "command": "focus_group", "args": { "group": 0 } },
-    { "keys": ["alt+2"], "command": "focus_group", "args": { "group": 1 } },
+    { "keys": ["alt+1"], "command": "focus_group", "args": { "group": 0 } },  // Fokus na levi panel
+    { "keys": ["alt+2"], "command": "focus_group", "args": { "group": 1 } },  // Fokus na desni panel
 
     // --- Harpoon ---
     // Same letters as the Helix side (<space>za/ze/zl/zc, A-1..A-9) so the
@@ -58,15 +61,15 @@
     { "keys": ["ctrl+alt+c"], "command": "harpoon_clear" },
     { "keys": ["ctrl+alt+n"], "command": "harpoon_next" },
     { "keys": ["ctrl+alt+b"], "command": "harpoon_prev" },
-    { "keys": ["ctrl+alt+1"], "command": "harpoon_goto", "args": { "index": 1 } },
-    { "keys": ["ctrl+alt+2"], "command": "harpoon_goto", "args": { "index": 2 } },
-    { "keys": ["ctrl+alt+3"], "command": "harpoon_goto", "args": { "index": 3 } },
-    { "keys": ["ctrl+alt+4"], "command": "harpoon_goto", "args": { "index": 4 } },
-    { "keys": ["ctrl+alt+5"], "command": "harpoon_goto", "args": { "index": 5 } },
-    { "keys": ["ctrl+alt+6"], "command": "harpoon_goto", "args": { "index": 6 } },
-    { "keys": ["ctrl+alt+7"], "command": "harpoon_goto", "args": { "index": 7 } },
-    { "keys": ["ctrl+alt+8"], "command": "harpoon_goto", "args": { "index": 8 } },
-    { "keys": ["ctrl+alt+9"], "command": "harpoon_goto", "args": { "index": 9 } },
+    { "keys": ["ctrl+alt+1"], "command": "harpoon_goto", "args": { "index": 1 } },  // Harpoon: skok na slot 1
+    { "keys": ["ctrl+alt+2"], "command": "harpoon_goto", "args": { "index": 2 } },  // Harpoon: skok na slot 2
+    { "keys": ["ctrl+alt+3"], "command": "harpoon_goto", "args": { "index": 3 } },  // Harpoon: skok na slot 3
+    { "keys": ["ctrl+alt+4"], "command": "harpoon_goto", "args": { "index": 4 } },  // Harpoon: skok na slot 4
+    { "keys": ["ctrl+alt+5"], "command": "harpoon_goto", "args": { "index": 5 } },  // Harpoon: skok na slot 5
+    { "keys": ["ctrl+alt+6"], "command": "harpoon_goto", "args": { "index": 6 } },  // Harpoon: skok na slot 6
+    { "keys": ["ctrl+alt+7"], "command": "harpoon_goto", "args": { "index": 7 } },  // Harpoon: skok na slot 7
+    { "keys": ["ctrl+alt+8"], "command": "harpoon_goto", "args": { "index": 8 } },  // Harpoon: skok na slot 8
+    { "keys": ["ctrl+alt+9"], "command": "harpoon_goto", "args": { "index": 9 } },  // Harpoon: skok na slot 9
 
     // --- CTags (package removed) ---
     // Kept as a record. The CTags package is no longer in
@@ -94,15 +97,15 @@
     // samo fokusiraju. Ovo su iste cifre uz shift: super+N fokusira tab N,
     // super+shift+N prebaci trenutni tab na mesto N. super+shift+1..9 su
     // slobodni u ST default keymapu na macOS-u.
-    { "keys": ["super+shift+1"], "command": "move_tab_to_index", "args": { "index": 1 } },
-    { "keys": ["super+shift+2"], "command": "move_tab_to_index", "args": { "index": 2 } },
-    { "keys": ["super+shift+3"], "command": "move_tab_to_index", "args": { "index": 3 } },
-    { "keys": ["super+shift+4"], "command": "move_tab_to_index", "args": { "index": 4 } },
-    { "keys": ["super+shift+5"], "command": "move_tab_to_index", "args": { "index": 5 } },
-    { "keys": ["super+shift+6"], "command": "move_tab_to_index", "args": { "index": 6 } },
-    { "keys": ["super+shift+7"], "command": "move_tab_to_index", "args": { "index": 7 } },
-    { "keys": ["super+shift+8"], "command": "move_tab_to_index", "args": { "index": 8 } },
-    { "keys": ["super+shift+9"], "command": "move_tab_to_index", "args": { "index": 9 } },
+    { "keys": ["super+shift+1"], "command": "move_tab_to_index", "args": { "index": 1 } },  // Prebaci tab na mesto 1
+    { "keys": ["super+shift+2"], "command": "move_tab_to_index", "args": { "index": 2 } },  // Prebaci tab na mesto 2
+    { "keys": ["super+shift+3"], "command": "move_tab_to_index", "args": { "index": 3 } },  // Prebaci tab na mesto 3
+    { "keys": ["super+shift+4"], "command": "move_tab_to_index", "args": { "index": 4 } },  // Prebaci tab na mesto 4
+    { "keys": ["super+shift+5"], "command": "move_tab_to_index", "args": { "index": 5 } },  // Prebaci tab na mesto 5
+    { "keys": ["super+shift+6"], "command": "move_tab_to_index", "args": { "index": 6 } },  // Prebaci tab na mesto 6
+    { "keys": ["super+shift+7"], "command": "move_tab_to_index", "args": { "index": 7 } },  // Prebaci tab na mesto 7
+    { "keys": ["super+shift+8"], "command": "move_tab_to_index", "args": { "index": 8 } },  // Prebaci tab na mesto 8
+    { "keys": ["super+shift+9"], "command": "move_tab_to_index", "args": { "index": 9 } },  // Prebaci tab na mesto 9
 
     // --- Cheatsheet (keys_help.py) ---
     // KEYS.md u korenu repoa, generise ga bin/dot-keys iz samih configa.

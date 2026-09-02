@@ -1,21 +1,38 @@
-"""F1 -> cheatsheet svih mapa; plus pretraga kroz quick panel.
+"""shift+F1 -> pretraziv spisak SVIH Sublime mapa, enter izvrsi komandu.
 
-KEYS.md pravi bin/dot-keys iz samih configa (komentari u keymapu, `desc` u
-init.lua, komentari u helix config.toml), pa se ne odrzava rucno. Ove
-komande ga regenerisu pre otvaranja, da nikad ne gledam ustajalu verziju.
+Samo Sublime. nvim ima svoj `<leader>?` (fzf picker preko pravih keymapa),
+helix ima hx-keys — ovde se ne mesaju.
 
-    keys_cheatsheet   regeneriraj i otvori KEYS.md
-    keys_search       quick panel preko svih mapa, skok na red u KEYS.md
+Cita se keymap direktno, ne KEYS.md, jer panel mora da zna komandu i njene
+argumente da bi je mogao izvrsiti.
 
-GUI aplikacije na macOS-u ne dobijaju shell PATH, pa se dot-keys trazi na
-standardnim lokacijama, ne samo kroz which() — ista zamka kao sa delta.
+Opis mape se trazi u tri koraka, prvi koji postoji pobedjuje:
+
+  1. // komentar na mapi: trailing na istom redu, ili jedan red iznad
+     (visielinijski blok iznad je proza o grupi i ne koristi se)
+       { "keys": ["f8"], "command": "lsp_hover" },  // Hover dokumentacija
+  2. caption iz bilo kog .sublime-commands (User, instalirani paketi, ST
+     default) — tako `pr_diff` dobije "PR: diff vs base branch (all files)"
+     bez da ista duplo pisem
+  3. ime komande, ocisceno od donjih crta
+
+Grupni // komentar iznad bloka mapa se NE koristi kao opis — to je proza o
+celoj grupi, i kao opis pojedine mape daje besmislice. Sekcija se vidi u
+drugom redu unosa.
+
+Pretraga hvata i taster i opis, jer su oba u prvom redu unosa.
+
+    keys_search       quick panel, enter izvrsi
+    keys_cheatsheet   regeneriraj i otvori KEYS.md (bin/dot-keys)
 """
 
+import json
 import os
 import re
 import shutil
 import subprocess
 import threading
+import zipfile
 
 import sublime
 import sublime_plugin
@@ -27,9 +44,192 @@ DOT_KEYS_PATHS = (
     os.path.expanduser("~/dotfiles/bin/dot-keys"),
 )
 
-# red u tabeli: | `key` | opis ili komanda |
-ROW_RE = re.compile(r"^\|\s*`([^`]+)`\s*\|\s*(.+?)\s*\|\s*$")
-HEADING_RE = re.compile(r"^(#{1,3})\s+(.*)$")
+# GitSavvy tasteri vaze samo unutar njegovih view-ova; `o` je taj koji stalno
+# zaboravim, pa idu u spisak, ali obelezeni.
+GS_VIEWS = {
+    "git_savvy.diff_view": "GitSavvy diff",
+    "git_savvy.inline_diff_view": "GitSavvy inline diff",
+    "git_savvy.status_view": "GitSavvy status",
+}
+
+SECTION_RE = re.compile(r"^//\s*---+\s*(.*?)\s*---+\s*$")
+TRAILING_RE = re.compile(r"//\s*(.+?)\s*$")
+
+
+def _strip_jsonc(text):
+    text = re.sub(r"^\s*//.*$", "", text, flags=re.M)
+    text = re.sub(r"//[^\"\n]*$", "", text, flags=re.M)
+    return re.sub(r",(\s*[\]}])", r"\1", text)
+
+
+def _packages_dir():
+    return os.path.dirname(sublime.packages_path())
+
+
+def _captions():
+    """{komanda: caption} iz svih .sublime-commands koje nadjem."""
+    found = {}
+
+    def ingest(raw):
+        try:
+            data = json.loads(_strip_jsonc(raw))
+        except ValueError:
+            return
+        for entry in data:
+            if not isinstance(entry, dict):
+                continue
+            command, caption = entry.get("command"), entry.get("caption")
+            if command and caption:
+                found.setdefault(command, caption)
+
+    user = os.path.join(sublime.packages_path(), "User")
+    if os.path.isdir(user):
+        for name in sorted(os.listdir(user)):
+            if name.endswith(".sublime-commands"):
+                try:
+                    with open(os.path.join(user, name)) as handle:
+                        ingest(handle.read())
+                except OSError:
+                    pass
+
+    roots = [os.path.join(_packages_dir(), "Installed Packages")]
+    exe = os.path.dirname(sublime.executable_path())
+    roots.append(os.path.join(exe, "Packages"))
+    for root in roots:
+        if not os.path.isdir(root):
+            continue
+        for name in sorted(os.listdir(root)):
+            if not name.endswith(".sublime-package"):
+                continue
+            try:
+                with zipfile.ZipFile(os.path.join(root, name)) as archive:
+                    for inner in archive.namelist():
+                        if inner.endswith(".sublime-commands"):
+                            ingest(archive.read(inner).decode("utf-8", "replace"))
+            except (OSError, zipfile.BadZipFile):
+                pass
+    return found
+
+
+def _parse_keymap(text, default_section):
+    """[(keys, command, args, trailing_desc, section)] iz JSON-a s komentarima."""
+    out = []
+    section = default_section
+    pending = []
+    buf, depth = None, 0
+
+    for line in text.split("\n"):
+        stripped = line.strip()
+        if buf is None:
+            head = SECTION_RE.match(stripped)
+            if head:
+                section, pending = head.group(1), []
+                continue
+            if stripped.startswith("//"):
+                text_ = stripped[2:].strip()
+                if text_:
+                    pending.append(text_)
+                continue
+            if not stripped:
+                pending = []
+                continue
+            if not stripped.startswith("{"):
+                continue
+            buf, depth = "", 0
+
+        buf += line + "\n"
+        depth += line.count("{") - line.count("}")
+        if depth > 0:
+            continue
+
+        last = buf.rstrip().split("\n")[-1]
+        tail = TRAILING_RE.search(last)
+        trailing = tail.group(1) if tail else None
+        # komentar prvo, pa onda zarez: inace ostane "{...},  // opis" ->
+        # "{...}," i json.loads pada na trailing zapeti
+        chunk = _strip_jsonc(buf).strip().rstrip(",")
+        try:
+            entry = json.loads(chunk)
+        except ValueError:
+            buf, pending = None, None
+            continue
+        keys = entry.get("keys") or []
+        command = entry.get("command")
+        if command:
+            # jednolinijski komentar iznad mape je opis; blok od vise linija
+            # je proza o celoj grupi i kao opis daje besmislice
+            above = pending[0] if len(pending) == 1 else None
+            out.append((" then ".join(keys), command, entry.get("args") or {},
+                        trailing or above, section))
+        buf, pending = None, []
+    return out
+
+
+def _gitsavvy_bindings():
+    root = os.path.join(_packages_dir(), "Installed Packages")
+    path = os.path.join(root, "GitSavvy.sublime-package")
+    if not os.path.exists(path):
+        return []
+    try:
+        with zipfile.ZipFile(path) as archive:
+            raw = archive.read("Default.sublime-keymap").decode("utf-8", "replace")
+    except (OSError, KeyError, zipfile.BadZipFile):
+        return []
+
+    out, seen = [], set()
+    pattern = re.compile(
+        r"\{[^{]*?\"keys\"\s*:\s*\[(.*?)\].*?\"command\"\s*:\s*\"(\w+)\"(.*?)\n\s*\}", re.S)
+    for match in pattern.finditer(raw):
+        keys_raw, command, rest = match.group(1), match.group(2), match.group(3)
+        for setting, label in GS_VIEWS.items():
+            if setting not in rest:
+                continue
+            keys = " ".join(re.findall(r'"([^"]+)"', keys_raw))
+            if (keys, command, label) in seen:
+                continue
+            seen.add((keys, command, label))
+            out.append((keys, command, {}, None, label + " (samo u tom view-u)"))
+    return out
+
+
+def _entries():
+    captions = _captions()
+    user_keymap = os.path.join(sublime.packages_path(), "User",
+                               "Default.sublime-keymap")
+    binds = []
+    if os.path.exists(user_keymap):
+        with open(user_keymap) as handle:
+            binds = _parse_keymap(handle.read(), "Moje mape")
+    binds += _gitsavvy_bindings()
+
+    items, actions = [], []
+    for keys, command, args, desc, section in binds:
+        label = desc or captions.get(command) or command.replace("_", " ")
+        shown = command
+        if args:
+            shown += " " + json.dumps(args, ensure_ascii=False)
+        items.append(["{}   —   {}".format(keys, label),
+                      "{}   ·   {}".format(shown, section)])
+        actions.append((command, args))
+    return items, actions
+
+
+class KeysSearchCommand(sublime_plugin.WindowCommand):
+    def run(self):
+        items, actions = _entries()
+        if not items:
+            self.window.status_message("keys: nisam nasao ni jednu mapu")
+            return
+
+        def picked(index):
+            if index < 0:
+                return
+            command, args = actions[index]
+            # run_command na prozoru kaskadira: window -> aktivni view ->
+            # application, pa rade i TextCommand mape (npr. GitSavvy `o`)
+            self.window.run_command(command, args)
+
+        self.window.show_quick_panel(items, picked)
 
 
 def _dot_keys_bin():
@@ -42,86 +242,28 @@ def _dot_keys_bin():
     return None
 
 
-def _regenerate():
-    """Vrati (putanja do KEYS.md, greska)."""
-    binary = _dot_keys_bin()
-    if not binary:
-        return None, "dot-keys nije nadjen (bin/dot-keys u dotfiles repou)"
-    try:
-        out = subprocess.run([binary], stdout=subprocess.PIPE,
-                             stderr=subprocess.PIPE, timeout=30)
-    except (OSError, subprocess.SubprocessError) as err:
-        return None, "dot-keys pao: {}".format(err)
-    if out.returncode != 0:
-        detail = out.stderr.decode("utf-8", "replace").strip().split("\n")[-1]
-        return None, "dot-keys izasao sa {}: {}".format(out.returncode, detail)
-    path = out.stdout.decode("utf-8", "replace").strip()
-    if not path or not os.path.exists(path):
-        return None, "dot-keys nije napisao KEYS.md"
-    return path, None
-
-
 class KeysCheatsheetCommand(sublime_plugin.WindowCommand):
     def run(self):
         window = self.window
 
         def work():
-            path, err = _regenerate()
-            if err:
-                sublime.set_timeout(lambda: window.status_message("keys: " + err), 0)
+            binary = _dot_keys_bin()
+            if not binary:
+                sublime.set_timeout(
+                    lambda: window.status_message("keys: dot-keys nije nadjen"), 0)
+                return
+            try:
+                out = subprocess.run([binary], stdout=subprocess.PIPE,
+                                     stderr=subprocess.PIPE, timeout=30)
+            except (OSError, subprocess.SubprocessError) as err:
+                msg = "keys: dot-keys pao: {}".format(err)
+                sublime.set_timeout(lambda: window.status_message(msg), 0)
+                return
+            path = out.stdout.decode("utf-8", "replace").strip()
+            if out.returncode != 0 or not path or not os.path.exists(path):
+                sublime.set_timeout(
+                    lambda: window.status_message("keys: dot-keys nije napisao KEYS.md"), 0)
                 return
             sublime.set_timeout(lambda: window.open_file(path), 0)
-
-        threading.Thread(target=work, daemon=True).start()
-
-
-class KeysSearchCommand(sublime_plugin.WindowCommand):
-    def run(self):
-        window = self.window
-
-        def work():
-            path, err = _regenerate()
-            if err:
-                sublime.set_timeout(lambda: window.status_message("keys: " + err), 0)
-                return
-
-            # Kontekst je hijerarhija naslova: "Sublime Text / PR REVIEW".
-            # Bez toga se ne vidi da li je mapa iz nvim-a ili iz Sublime-a.
-            items, targets = [], []
-            trail = {}
-            with open(path) as handle:
-                for row, line in enumerate(handle, start=1):
-                    heading = HEADING_RE.match(line)
-                    if heading:
-                        level = len(heading.group(1))
-                        trail[level] = heading.group(2).strip()
-                        for deeper in list(trail):
-                            if deeper > level:
-                                del trail[deeper]
-                        continue
-                    match = ROW_RE.match(line)
-                    if not match:
-                        continue
-                    key, what = match.group(1), match.group(2)
-                    if key.strip() in ("---", "Key"):
-                        continue
-                    where = " / ".join(trail[k] for k in sorted(trail) if k > 1)
-                    items.append([key, "{}   —   {}".format(what.strip("` "), where)])
-                    targets.append(row)
-
-            if not items:
-                sublime.set_timeout(
-                    lambda: window.status_message("keys: nema mapa u KEYS.md"), 0)
-                return
-
-            def show():
-                def picked(index):
-                    if index < 0:
-                        return
-                    window.open_file("{}:{}".format(path, targets[index]),
-                                     sublime.ENCODED_POSITION)
-                window.show_quick_panel(items, picked)
-
-            sublime.set_timeout(show, 0)
 
         threading.Thread(target=work, daemon=True).start()

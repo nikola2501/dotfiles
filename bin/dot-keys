@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
-"""dot-keys - one cheatsheet for every binding this repo adds, all editors.
+"""dot-keys - cheatsheet for the Sublime Text bindings this repo adds.
 
-Same idea as hx-keys, widened: descriptions are pulled out of the configs
-themselves, so there is one source of truth and nothing to keep in sync.
+Same idea as hx-keys: descriptions are pulled out of the config itself, so
+there is one source of truth and nothing to keep in sync.
 
   Sublime Text  sublime/User/Default.sublime-keymap   // comments + sections
   GitSavvy      the installed .sublime-package        its own view-local keys
-  Neovim        ~/.config/nvim/init.lua               desc = "..." on each map
-  Helix         helix/config.toml                     # comments + [keys.*]
+
+Sublime only, on purpose. Neovim already has `<leader>?` (a live fzf picker
+over the real keymaps) and Helix has hx-keys; duplicating them here just
+gave three places to look instead of one.
 
 Written in Python rather than awk (like hx-keys) because the Sublime keymap
 is JSON-with-comments spread over multiple lines, and GitSavvy's keys live
@@ -29,14 +31,16 @@ import zipfile
 REPO = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 OUT = os.path.join(REPO, "KEYS.md")
 
-NVIM_INIT = os.path.expanduser("~/.config/nvim/init.lua")
-HELIX_CFG = os.path.join(REPO, "helix", "config.toml")
 ST_KEYMAP = os.path.join(REPO, "sublime", "User", "Default.sublime-keymap")
-GITSAVVY = os.path.expanduser(
-    "~/Library/Application Support/Sublime Text/Installed Packages/"
-    "GitSavvy.sublime-package")
-GITSAVVY_LINUX = os.path.expanduser(
-    "~/.config/sublime-text/Installed Packages/GitSavvy.sublime-package")
+ST_SUPPORT = os.path.expanduser("~/Library/Application Support/Sublime Text")
+if not os.path.isdir(ST_SUPPORT):
+    ST_SUPPORT = os.path.expanduser("~/.config/sublime-text")
+ST_PACKAGES = os.path.join(ST_SUPPORT, "Packages")
+INSTALLED_PACKAGES = os.path.join(ST_SUPPORT, "Installed Packages")
+APP_PACKAGES = "/Applications/Sublime Text.app/Contents/MacOS/Packages"
+
+GITSAVVY = os.path.join(INSTALLED_PACKAGES, "GitSavvy.sublime-package")
+GITSAVVY_LINUX = GITSAVVY
 
 # GitSavvy binds the same letter in several of its views; only these matter
 # for the PR review flow, and the context setting is what tells them apart.
@@ -49,6 +53,10 @@ GS_VIEWS = {
 
 def strip_jsonc(text):
     text = re.sub(r"^\s*//.*$", "", text, flags=re.M)
+    # i trailing komentari, npr. `{ ... },  // opis`. Guard [^"\n]* znaci da
+    # se // unutar stringa (npr. "https://x") ne dira, jer posle njega ima
+    # zatvarajuci navodnik.
+    text = re.sub(r'//[^"\n]*$', "", text, flags=re.M)
     return re.sub(r",(\s*[\]}])", r"\1", text)
 
 
@@ -56,11 +64,65 @@ def fmt_keys(keys):
     return " then ".join(keys)
 
 
+def captions():
+    """{command: caption} from every .sublime-commands I can find.
+
+    Same lookup keys_help.py does, so KEYS.md and the shift+F1 panel show the
+    same text. This is how `pr_diff` gets "PR: diff vs base branch (all
+    files)" without writing the description twice.
+    """
+    found = {}
+
+    def ingest(raw):
+        try:
+            data = json.loads(strip_jsonc(raw))
+        except ValueError:
+            return
+        for entry in data:
+            if not isinstance(entry, dict):
+                continue
+            command, caption = entry.get("command"), entry.get("caption")
+            if command and caption:
+                found.setdefault(command, caption)
+
+    user = os.path.join(ST_PACKAGES, "User")
+    if os.path.isdir(user):
+        for name in sorted(os.listdir(user)):
+            if name.endswith(".sublime-commands"):
+                try:
+                    with open(os.path.join(user, name)) as handle:
+                        ingest(handle.read())
+                except OSError:
+                    pass
+
+    for root in (INSTALLED_PACKAGES, APP_PACKAGES):
+        if not os.path.isdir(root):
+            continue
+        for name in sorted(os.listdir(root)):
+            if not name.endswith(".sublime-package"):
+                continue
+            try:
+                with zipfile.ZipFile(os.path.join(root, name)) as archive:
+                    for inner in archive.namelist():
+                        if inner.endswith(".sublime-commands"):
+                            ingest(archive.read(inner).decode("utf-8", "replace"))
+            except (OSError, zipfile.BadZipFile):
+                pass
+    return found
+
+
 # --- Sublime -------------------------------------------------------------
 def parse_sublime(path):
-    """[(section, [prose lines], [(keys, command, args)])] in file order."""
+    """[(section, [prose], [(keys, desc, command, args)])] in file order.
+
+    A binding's description comes from a // comment on the binding itself:
+    trailing on the same line, or a single line directly above. A multi-line
+    comment block above is prose about the whole group, not one binding, so
+    it goes in the section intro instead.
+    """
     groups = []
     section, prose, binds = "Other", [], []
+    pending = []
 
     def flush():
         if binds or prose:
@@ -74,9 +136,13 @@ def parse_sublime(path):
             head = re.match(r"---+\s*(.*?)\s*---+\s*$", text)
             if head:
                 flush()
-                section, prose, binds = head.group(1), [], []
+                section, prose, binds, pending = head.group(1), [], [], []
             elif text:
                 prose.append(text)
+                pending.append(text)
+            continue
+        if buf is None and not stripped:
+            pending = []
             continue
         if buf is None and stripped.startswith("{"):
             buf, depth = "", 0
@@ -86,14 +152,20 @@ def parse_sublime(path):
         depth += line.count("{") - line.count("}")
         if depth > 0:
             continue
+        last = buf.rstrip().split("\n")[-1]
+        tail = re.search(r"//\s*(.+?)\s*$", last)
+        trailing = tail.group(1) if tail else None
+        # komentare skloni PRE rstrip(","): inace ostane "{...},  // opis"
+        # -> "{...}," i json.loads pada na trailing zapeti
         try:
-            entry = json.loads(strip_jsonc(buf.strip().rstrip(",")))
+            entry = json.loads(strip_jsonc(buf).strip().rstrip(","))
         except ValueError:
-            buf = None
+            buf, pending = None, []
             continue
-        binds.append((fmt_keys(entry["keys"]), entry["command"],
-                      entry.get("args") or {}))
-        buf = None
+        above = pending[0] if len(pending) == 1 else None
+        binds.append((fmt_keys(entry["keys"]), trailing or above,
+                      entry["command"], entry.get("args") or {}))
+        buf, pending = None, []
     flush()
     return groups
 
@@ -122,75 +194,6 @@ def parse_gitsavvy():
     return out
 
 
-# --- Neovim --------------------------------------------------------------
-def parse_nvim(path):
-    """[(section, [(key, desc)])] — desc comes off each map() call."""
-    if not os.path.exists(path):
-        return []
-    groups, section, binds = [], "General", []
-    pending = None
-    for line in open(path):
-        head = re.match(r"^--\s*---+\s*(.*?)\s*-*\s*$", line)
-        if head and head.group(1):
-            if binds:
-                groups.append((section, binds))
-            section, binds = head.group(1), []
-            continue
-        found = re.search(r'(?:map|vim\.keymap\.set)\(\s*(?:\{[^}]*\}|"[^"]*")\s*,\s*"((?:[^"\\]|\\.)*)"', line)
-        if found:
-            pending = found.group(1)
-        desc = re.search(r'desc\s*=\s*"((?:[^"\\]|\\.)*)"', line)
-        if desc and pending:
-            binds.append((pending, desc.group(1)))
-            pending = None
-    if binds:
-        groups.append((section, binds))
-    return groups
-
-
-# --- Helix ---------------------------------------------------------------
-def parse_helix(path):
-    """([(section, [prose])], [(mode, key, command)])"""
-    if not os.path.exists(path):
-        return [], []
-    groups, section, prose = [], None, []
-    for line in open(path):
-        stripped = line.strip()
-        head = re.match(r"^#\s*---+\s*(.*?)\s*---+\s*$", stripped)
-        if head:
-            if prose:
-                groups.append((section, prose))
-            section, prose = head.group(1), []
-            continue
-        if stripped.startswith("#") and re.search(r"<space>|A-ret|A-\d", stripped):
-            prose.append(stripped.lstrip("#").strip())
-    if prose:
-        groups.append((section, prose))
-
-    binds = []
-    try:
-        import tomllib
-        with open(path, "rb") as handle:
-            data = tomllib.load(handle)
-
-        # Helix submeniji su ugnezdene tabele i idu vise od dva nivoa duboko
-        # (keys.normal.space.z.a), pa flatten mora da bude rekurzivan —
-        # inace se dict ispise kao Python repr.
-        def walk(mode, prefix, value):
-            if isinstance(value, dict):
-                for sub, subvalue in value.items():
-                    walk(mode, prefix + [sub], subvalue)
-            else:
-                binds.append((mode, " ".join(prefix), value))
-
-        for mode, table in (data.get("keys") or {}).items():
-            for key, value in table.items():
-                walk(mode, [key], value)
-    except Exception:
-        pass
-    return groups, binds
-
-
 def render_command(value):
     if isinstance(value, list):
         return " → ".join(str(v) for v in value)
@@ -205,7 +208,7 @@ def main():
     out = []
     add = out.append
 
-    add("# KEYS — everything this repo binds, in one place")
+    add("# KEYS — Sublime Text bindings this repo adds")
     add("")
     add("Generated by `bin/dot-keys`. Do not edit by hand: the descriptions are")
     add("pulled from the comments and `desc` fields in the configs themselves, so")
@@ -213,22 +216,24 @@ def main():
     add("")
     add("Sources:")
     add("")
-    for label, path in (("Sublime", ST_KEYMAP), ("Neovim", NVIM_INIT),
-                        ("Helix", HELIX_CFG), ("GitSavvy", GITSAVVY)):
+    for label, path in (("Sublime", ST_KEYMAP), ("GitSavvy", GITSAVVY)):
         mark = "" if os.path.exists(path) else "  (missing)"
         add("- {}: `{}`{}".format(label, path.replace(os.path.expanduser("~"), "~"), mark))
     add("")
     add("How to search this:")
     add("")
-    add("- Sublime: `F1` opens it, or `Keys: search bindings` in the palette")
-    add("- Neovim: `<leader>?` is a live fzf picker over the real keymaps")
-    add("- Helix: `<space>i` (hx-keys, Helix bindings only)")
+    add("- `shift+F1` in Sublime: quick panel over every binding, searchable by")
+    add("  key *and* description, and Enter runs the command")
+    add("- `F1`: regenerates and opens this file")
     add("- Terminal: `dot-keys | fzf` or just grep this file")
+    add("")
+    add("Other editors have their own: Neovim `<leader>?`, Helix `<space>i`.")
     add("")
 
     # Sublime
     add("## Sublime Text")
     add("")
+    caps = captions()
     for section, prose, binds in parse_sublime(ST_KEYMAP):
         if not binds:
             continue
@@ -238,13 +243,14 @@ def main():
             add("> {}".format(line))
         if prose:
             add("")
-        add("| Key | Command |")
-        add("| --- | --- |")
-        for keys, command, args in binds:
+        add("| Key | Does | Command |")
+        add("| --- | --- | --- |")
+        for keys, desc, command, args in binds:
             shown = command
             if args:
                 shown += " " + json.dumps(args, ensure_ascii=False)
-            add("| `{}` | `{}` |".format(keys, shown))
+            label = desc or caps.get(command) or command.replace("_", " ")
+            add("| `{}` | {} | `{}` |".format(keys, label, shown))
         add("")
 
     gs = parse_gitsavvy()
@@ -257,48 +263,11 @@ def main():
         for label, binds in gs.items():
             add("**{}**".format(label))
             add("")
-            add("| Key | Command |")
-            add("| --- | --- |")
+            add("| Key | Does | Command |")
+            add("| --- | --- | --- |")
             for key, command in sorted(binds):
-                add("| `{}` | `{}` |".format(key, command))
-            add("")
-
-    # Neovim
-    nvim = parse_nvim(NVIM_INIT)
-    if nvim:
-        add("## Neovim")
-        add("")
-        for section, binds in nvim:
-            add("### {}".format(section))
-            add("")
-            add("| Key | Does |")
-            add("| --- | --- |")
-            for key, desc in binds:
-                add("| `{}` | {} |".format(key, desc))
-            add("")
-
-    # Helix
-    groups, binds = parse_helix(HELIX_CFG)
-    if groups or binds:
-        add("## Helix")
-        add("")
-        for section, prose in groups:
-            if section:
-                add("### {}".format(section))
-                add("")
-            for line in prose:
-                add("- {}".format(line))
-            add("")
-        if binds:
-            add("### All bindings from config.toml")
-            add("")
-            # dve kolone, kao sve ostale tabele: keys_help.py cita `key` iz
-            # prve kolone, pa bi trokolonska tabela ispala iz pretrage
-            add("| Key | Command |")
-            add("| --- | --- |")
-            for mode, key, value in binds:
-                label = key if mode == "normal" else "{}: {}".format(mode, key)
-                add("| `{}` | `{}` |".format(label, render_command(value)))
+                add("| `{}` | {} | `{}` |".format(
+                    key, caps.get(command) or command.replace("_", " "), command))
             add("")
 
     text = "\n".join(out) + "\n"
