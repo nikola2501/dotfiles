@@ -165,6 +165,25 @@ Other editors have their own: Neovim `<leader>?`, Helix `<space>i`.
 | `ctrl+shift+x` | Obrisi okruzujuci par (nvim <leader>x) | `surround_delete_prompt` |
 | `ctrl+shift+u` | Promeni par u drugi (nvim <leader>C) | `surround_change_prompt` |
 
+### Sirenje selekcije (text objekti)
+
+> Sublime ovo ima ugradjeno, i to progresivno: ponavljanje istog tastera
+> ide korak na gore. Korak na DOLE je cmd+u (soft_undo), koji se vraca
+> kroz istoriju selekcije.
+> Vec radi u ST defaultu, ne treba mapirati:
+> cmd+shift+space   scope        (nvim vi" / helix mi" — string, blok, telo)
+> ctrl+shift+m      brackets     (unutar ( [ { — ponavljanje kroz ugnjezdenje)
+> cmd+shift+a       smart / tag  (heuristika: navodnici, zagrade, HTML tag)
+> cmd+l             linija       cmd+alt+l prethodna linija
+> cmd+d             rec, pa sledeca pojava
+> cmd+u             KORAK NA DOLE, suzava selekciju
+> Ove dve komande postoje ali su bile nemapirane:
+
+| Key | Does | Command |
+| --- | --- | --- |
+| `ctrl+shift+i` | Selektuj blok na ovom nivou uvlacenja (telo funkcije, strukture) | `expand_selection {"to": "indentation"}` |
+| `ctrl+shift+o` | Selektuj paragraf / blok do praznih linija | `expand_selection_to_paragraph` |
+
 ### GitSavvy view-local keys
 
 > These are GitSavvy's own, active only inside its views — this is
