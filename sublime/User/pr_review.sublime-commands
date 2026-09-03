@@ -6,5 +6,8 @@
     { "caption": "PR: git status dashboard", "command": "gs_show_status" },
     { "caption": "PR: inline diff current file", "command": "gs_inline_diff" },
     { "caption": "Keys: open cheatsheet (KEYS.md)", "command": "keys_cheatsheet" },
-    { "caption": "Keys: search bindings", "command": "keys_search" }
+    { "caption": "Keys: search bindings", "command": "keys_search" },
+    { "caption": "Surround: add around selection or word", "command": "surround_add_prompt" },
+    { "caption": "Surround: delete surrounding pair", "command": "surround_delete_prompt" },
+    { "caption": "Surround: change surrounding pair", "command": "surround_change_prompt" }
 ]

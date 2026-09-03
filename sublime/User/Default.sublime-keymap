@@ -131,4 +131,13 @@
     { "keys": ["ctrl+shift+alt+l"], "command": "gs_github_open_file_in_browser" },  // Otvori fajl na GitHubu (nvim <leader>gc)
     { "keys": ["ctrl+shift+a"], "command": "gs_blame" },  // Blame trenutnog fajla (nvim <leader>A)
     { "keys": ["ctrl+shift+h"], "command": "gs_log", "args": { "current_file": true } },  // Commiti koji su dirali ovaj fajl (nvim <leader>c)
+
+    // --- Surround (surround.py) ---
+    // Port sekcije SURROUND iz nvim configa, vim-surround konvencija.
+    // Posle tastera se ukuca granicnik i to je sve — panel se sam zatvori.
+    // Otvarajuci karakter dodaje razmak iznutra: ( daje "( x )", ) daje "(x)".
+    // b r B a su zatvarajuci oblici ( [ { <.
+    { "keys": ["ctrl+shift+y"], "command": "surround_add_prompt" },  // Opkoli selekciju ili rec (nvim <leader>y)
+    { "keys": ["ctrl+shift+x"], "command": "surround_delete_prompt" },  // Obrisi okruzujuci par (nvim <leader>x)
+    { "keys": ["ctrl+shift+u"], "command": "surround_change_prompt" },  // Promeni par u drugi (nvim <leader>C)
 ]

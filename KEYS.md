@@ -152,6 +152,19 @@ Other editors have their own: Neovim `<leader>?`, Helix `<space>i`.
 | `ctrl+shift+a` | Blame trenutnog fajla (nvim <leader>A) | `gs_blame` |
 | `ctrl+shift+h` | Commiti koji su dirali ovaj fajl (nvim <leader>c) | `gs_log {"current_file": true}` |
 
+### Surround (surround.py)
+
+> Port sekcije SURROUND iz nvim configa, vim-surround konvencija.
+> Posle tastera se ukuca granicnik i to je sve — panel se sam zatvori.
+> Otvarajuci karakter dodaje razmak iznutra: ( daje "( x )", ) daje "(x)".
+> b r B a su zatvarajuci oblici ( [ { <.
+
+| Key | Does | Command |
+| --- | --- | --- |
+| `ctrl+shift+y` | Opkoli selekciju ili rec (nvim <leader>y) | `surround_add_prompt` |
+| `ctrl+shift+x` | Obrisi okruzujuci par (nvim <leader>x) | `surround_delete_prompt` |
+| `ctrl+shift+u` | Promeni par u drugi (nvim <leader>C) | `surround_change_prompt` |
+
 ### GitSavvy view-local keys
 
 > These are GitSavvy's own, active only inside its views — this is
