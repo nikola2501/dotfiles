@@ -131,6 +131,27 @@ Other editors have their own: Neovim `<leader>?`, Helix `<space>i`.
 | `f1` | Keys: open cheatsheet (KEYS.md) | `keys_cheatsheet` |
 | `shift+f1` | Keys: search bindings | `keys_search` |
 
+### Paritet sa nvim configom
+
+> Komande koje Sublime i paketi vec imaju, samo nisu bile mapirane.
+> Nista od ovoga nije nov kod. Ekvivalenti iz ~/.config/nvim/init.lua su
+> u komentaru na svakoj mapi.
+> Vec radi u ST defaultu, ne treba mapirati:
+> ctrl+. / ctrl+,        next_modification / prev_modification  (]c / [c)
+> cmd+k pa cmd+shift+z   revert_modification  (gitsigns reset_hunk)
+
+| Key | Does | Command |
+| --- | --- | --- |
+| `f9` | Sledeca diagnostika (nvim ]d) | `lsp_next_diagnostic` |
+| `f10` | Prethodna diagnostika (nvim [d) | `lsp_prev_diagnostic` |
+| `ctrl+shift+e` | Lista diagnostike (nvim <leader>dd) | `lsp_show_diagnostics_panel` |
+| `ctrl+f12` | LSP implementations (nvim gi) | `lsp_symbol_implementation` |
+| `ctrl+shift+g` | Repo u Sublime Merge-u (nvim <C-g> lazygit) | `sublime_merge_open_repo` |
+| `ctrl+shift+l` | Permalink na liniju u clipboard (nvim <leader>gl) | `gs_github_copy_file_url` |
+| `ctrl+shift+alt+l` | Otvori fajl na GitHubu (nvim <leader>gc) | `gs_github_open_file_in_browser` |
+| `ctrl+shift+a` | Blame trenutnog fajla (nvim <leader>A) | `gs_blame` |
+| `ctrl+shift+h` | Commiti koji su dirali ovaj fajl (nvim <leader>c) | `gs_log {"current_file": true}` |
+
 ### GitSavvy view-local keys
 
 > These are GitSavvy's own, active only inside its views — this is

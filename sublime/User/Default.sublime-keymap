@@ -113,4 +113,22 @@
     // i Sublime), sa skokom na taj red u KEYS.md.
     { "keys": ["f1"], "command": "keys_cheatsheet" },
     { "keys": ["shift+f1"], "command": "keys_search" },
+
+    // --- Paritet sa nvim configom ---
+    // Komande koje Sublime i paketi vec imaju, samo nisu bile mapirane.
+    // Nista od ovoga nije nov kod. Ekvivalenti iz ~/.config/nvim/init.lua su
+    // u komentaru na svakoj mapi.
+    //
+    // Vec radi u ST defaultu, ne treba mapirati:
+    //   ctrl+. / ctrl+,        next_modification / prev_modification  (]c / [c)
+    //   cmd+k pa cmd+shift+z   revert_modification  (gitsigns reset_hunk)
+    { "keys": ["f9"], "command": "lsp_next_diagnostic" },  // Sledeca diagnostika (nvim ]d)
+    { "keys": ["f10"], "command": "lsp_prev_diagnostic" },  // Prethodna diagnostika (nvim [d)
+    { "keys": ["ctrl+shift+e"], "command": "lsp_show_diagnostics_panel" },  // Lista diagnostike (nvim <leader>dd)
+    { "keys": ["ctrl+f12"], "command": "lsp_symbol_implementation" },  // LSP implementations (nvim gi)
+    { "keys": ["ctrl+shift+g"], "command": "sublime_merge_open_repo" },  // Repo u Sublime Merge-u (nvim <C-g> lazygit)
+    { "keys": ["ctrl+shift+l"], "command": "gs_github_copy_file_url" },  // Permalink na liniju u clipboard (nvim <leader>gl)
+    { "keys": ["ctrl+shift+alt+l"], "command": "gs_github_open_file_in_browser" },  // Otvori fajl na GitHubu (nvim <leader>gc)
+    { "keys": ["ctrl+shift+a"], "command": "gs_blame" },  // Blame trenutnog fajla (nvim <leader>A)
+    { "keys": ["ctrl+shift+h"], "command": "gs_log", "args": { "current_file": true } },  // Commiti koji su dirali ovaj fajl (nvim <leader>c)
 ]
