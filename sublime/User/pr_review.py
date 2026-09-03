@@ -16,6 +16,7 @@ Komande (palette: "PR: ..."):
     pr_diff_file         samo trenutni fajl vs baza
     pr_diff_pick_base    isto, ali sam izaberem granu
     pr_commits           graf commit-a u ovom PR-u
+    pr_show_commit       commit ciji SHA stoji na ovoj liniji
 
 U GitSavvy diff view-u (njegovi default tasteri, `?` daje pun spisak):
     j / k    hunk gore-dole          N / P    prethodni/sledeci fajl
@@ -210,3 +211,36 @@ class PrCommitsCommand(sublime_plugin.WindowCommand):
             window.status_message("commiti vs {}".format(ref))
 
         _resolve_and_run(window, go)
+
+
+# --- COMMIT SA LINIJE ---------------------------------------------------
+# GitSavvy-jev gs_show_commit prima obavezan commit_hash, pa se ne moze
+# mapirati na goli taster. Ovo je ekvivalent Gshow iz nvim configa: procita
+# SHA sa trenutne linije i preda ga GitSavvy-ju.
+SHA_RE = re.compile(r"\b[0-9a-f]{7,40}\b")
+
+
+class PrShowCommitCommand(sublime_plugin.WindowCommand):
+    """Otvori commit ciji SHA stoji na liniji pod kursorom (nvim Gshow)."""
+
+    def run(self):
+        view = self.window.active_view()
+        if view is None:
+            return
+        selection = view.sel()
+        if not len(selection):
+            return
+
+        point = selection[0].b
+        # prvo rec pod kursorom, pa onda cela linija — tako kursor na SHA
+        # pobedjuje drugi SHA na istoj liniji
+        word = view.substr(view.word(point)).strip()
+        candidates = SHA_RE.findall(word) + SHA_RE.findall(view.substr(view.line(point)))
+        # ocisti ocigledne lazne pozitive: samo cifre nije SHA (broj linije,
+        # timestamp), a i git ih ne bi razresio
+        candidates = [c for c in candidates if not c.isdigit()]
+        if not candidates:
+            self.window.status_message("PR review: nema SHA na ovoj liniji")
+            return
+
+        self.window.run_command("gs_show_commit", {"commit_hash": candidates[0]})

@@ -151,6 +151,8 @@ Other editors have their own: Neovim `<leader>?`, Helix `<space>i`.
 | `ctrl+shift+alt+l` | Otvori fajl na GitHubu (nvim <leader>gc) | `gs_github_open_file_in_browser` |
 | `ctrl+shift+a` | Blame trenutnog fajla (nvim <leader>A) | `gs_blame` |
 | `ctrl+shift+h` | Commiti koji su dirali ovaj fajl (nvim <leader>c) | `gs_log {"current_file": true}` |
+| `ctrl+f9` | Skoci na diagnostiku iz liste u fajlu | `lsp_goto_diagnostic` |
+| `ctrl+alt+v` | Commit ciji SHA stoji na ovoj liniji (nvim <leader>v Gshow) | `pr_show_commit` |
 
 ### Surround (surround.py)
 

@@ -3,6 +3,7 @@
     { "caption": "PR: diff current file vs base branch", "command": "pr_diff_file" },
     { "caption": "PR: diff vs branch...", "command": "pr_diff_pick_base" },
     { "caption": "PR: commits in this PR", "command": "pr_commits" },
+    { "caption": "PR: show commit whose SHA is on this line", "command": "pr_show_commit" },
     { "caption": "PR: git status dashboard", "command": "gs_show_status" },
     { "caption": "PR: inline diff current file", "command": "gs_inline_diff" },
     { "caption": "Keys: open cheatsheet (KEYS.md)", "command": "keys_cheatsheet" },

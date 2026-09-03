@@ -131,6 +131,8 @@
     { "keys": ["ctrl+shift+alt+l"], "command": "gs_github_open_file_in_browser" },  // Otvori fajl na GitHubu (nvim <leader>gc)
     { "keys": ["ctrl+shift+a"], "command": "gs_blame" },  // Blame trenutnog fajla (nvim <leader>A)
     { "keys": ["ctrl+shift+h"], "command": "gs_log", "args": { "current_file": true } },  // Commiti koji su dirali ovaj fajl (nvim <leader>c)
+    { "keys": ["ctrl+f9"], "command": "lsp_goto_diagnostic" },  // Skoci na diagnostiku iz liste u fajlu
+    { "keys": ["ctrl+alt+v"], "command": "pr_show_commit" },  // Commit ciji SHA stoji na ovoj liniji (nvim <leader>v Gshow)
 
     // --- Surround (surround.py) ---
     // Port sekcije SURROUND iz nvim configa, vim-surround konvencija.
