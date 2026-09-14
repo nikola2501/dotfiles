@@ -1,0 +1,23 @@
+{
+  "name": "cyanide-matrix",
+  "displayName": "Cyanide - Matrix",
+  "description": "Port of my Sublime Text Cyanide - Matrix theme: #0a0a0a background, matrix green, azure strings, crimson comments.",
+  "version": "0.1.0",
+  "publisher": "nikola",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Themes"
+  ],
+  "contributes": {
+    "themes": [
+      {
+        "label": "Cyanide - Matrix",
+        "uiTheme": "vs-dark",
+        "path": "./themes/cyanide-matrix-color-theme.json"
+      }
+    ]
+  }
+}
