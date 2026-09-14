@@ -22,6 +22,7 @@
 		"LSP",
 		"LSP-clangd",
 		"LSP-gopls",
+		"LSP-lua",
 		"LSP-rust-analyzer",
 		"MarkdownPreview",
 		"Odin",
