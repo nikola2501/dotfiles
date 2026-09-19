@@ -67,12 +67,32 @@ this repo's to own. There the rules are:
 | `bin/hx-*` (`make`, `harpoon`, `git`, `diff`, `jump`, `keys`) | `~/.local/bin/` |
 | `sublime/User/**` | Sublime's `Packages/User/` (via `install-sublime.sh`) |
 | the `# >>> dotfiles: helix >>>` block | appended to `~/.zshrc` |
+| `emacs/init.el`, `emacs/rc/`, `emacs/local/` | `~/.config/emacs/` (via `install-emacs.sh`) |
+| `emacs/*.md` | `~/.config/emacs/` (via `install-emacs.sh`) |
+| the `# >>> dotfiles: emacs >>>` block | appended to `~/.zshrc` |
 
-`install-helix.sh` only manages what is listed above. The other directories
-(`tmux/`, `ghostty/`, `i3/`, `alacritty/`, `sway/`, `zellij/`, `emacs/`, `zed/`,
-`nixos/`, `claude/`, `.zshrc`, `starship.toml`, `.vimrc`) are stored
-here but not linked — link them by hand, or extend `install-helix.sh` when you want
-them automated.
+`install-helix.sh` manages the helix and `bin/` rows; `install-emacs.sh` manages
+the emacs rows (and sets up the Emacs daemon — systemd on Linux, launchd on
+macOS). The other directories (`tmux/`, `ghostty/`, `i3/`, `alacritty/`,
+`sway/`, `zellij/`, `zed/`, `nixos/`, `claude/`, `.zshrc`, `starship.toml`,
+`.vimrc`) are stored here but not linked — link them by hand, or extend an
+installer when you want them automated.
+
+### Emacs
+
+```sh
+./install-emacs.sh              # config + daemon
+./install-emacs.sh --no-daemon  # config only
+./install-emacs.sh --uninstall  # undo
+```
+
+A small, explicit config in the style of Tsoding's: no LSP, no tree-sitter,
+nine packages, the compile buffer instead of a language server. C via
+`simpc-mode`, Go via `go-mode`. See `emacs/README.md`, and `emacs/COMPILE.md`
+for the compile workflow it is built around.
+
+Packages are not vendored — Emacs installs them from MELPA on first start, so
+that first launch needs a network connection.
 
 ## Themes
 

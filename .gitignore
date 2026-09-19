@@ -11,3 +11,10 @@ __pycache__/
 
 # Helix editor state (recent-files.txt)
 .helix/
+
+# Emacs: machine-local state, never shared
+emacs/elpa/
+emacs/eln-cache/
+emacs/var/
+emacs/custom.el
+emacs/*.bak-*
