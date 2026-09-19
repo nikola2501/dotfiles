@@ -20,6 +20,9 @@ Emacs **nije modalan**. Kucaš i tekst ulazi. `C-x` = Ctrl+x, `M-x` = Alt+x.
 | `M-g p` | prethodna greška |
 | `C-c k` | prekini kompajliranje |
 | `C-c s` | rg pretraga kroz projekat (isti mehanizam, `M-g n` radi) |
+| `C-c d` | **gde je ovo definisano** (traži oblik deklaracije, ne sve pojave) |
+| `C-u C-c d` | isto, ali i po zavisnostima (`~/go/pkg/mod`, `/usr/include`) |
+| `C-c D` | `go doc` za simbol pod kursorom |
 
 Detaljno uputstvo: `COMPILE.md`.
 

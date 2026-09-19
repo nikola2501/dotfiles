@@ -116,6 +116,43 @@ Kompromis je iskren: gubiš trenutnu povratnu informaciju i semantičko
 preimenovanje. Dobijaš to da ništa ne indeksira u pozadini, ništa se ne
 kvari, i radi identično za jezik koji si napisao juče.
 
+## "Gde je ovo definisano" — `C-c d`
+
+Problem sa običnim grep-om: `C-c s` na `ColorDefault` daje 62 pogotka, a
+definicija je jedan od njih. Svi ostali su upotrebe.
+
+`C-c d` ne traži ime nego **oblik deklaracije** — `func Ime`, `type Ime`,
+`Ime = `, `#define Ime`. Isti simbol: 62 pogotka → 6.
+
+| | |
+|---|---|
+| `C-c d` | definicija u projektu |
+| `C-u C-c d` | **i po zavisnostima** (Go module cache, `/usr/include`) |
+| `C-c D` | `go doc` za simbol — najbrže za stdlib i zavisnosti |
+
+Oba popunjavaju polje simbolom pod kursorom, pa je obično samo `C-c d RET`.
+
+### Zašto prefiks za zavisnosti
+
+`ColorDefault` iz `termbox-go` nije u projektu — nema `vendor/` foldera,
+paket živi u `~/go/pkg/mod`. Zato ga obična pretraga ne nalazi. `C-u C-c d`
+proširi pretragu na `go env GOMODCACHE`, i nađe:
+
+```
+termbox-go@v0.0.0-2020.../api_common.go:136:  ColorDefault Attribute = iota
+```
+
+Za C isto važi za `/usr/include`.
+
+### Kad znaš da je iz zavisnosti, `go doc` je brži
+
+```
+C-c D  →  github.com/nsf/termbox-go ColorDefault
+```
+
+Ne pretražuje fajlove nego pita sam Go, pa uvek daje tačnu deklaraciju i
+dokumentaciju uz nju.
+
 ## Grep koristi isti mehanizam
 
 `C-c s` pokreće `rg --vimgrep` iz korena projekta. Pošto `rg` ispisuje
