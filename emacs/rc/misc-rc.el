@@ -23,6 +23,14 @@
 
 (windmove-default-keybindings)           ; S-<strelice> izmedju prozora
 
+;; which-key: pritisnes prefiks (C-x, C-c) i zastanes -- iskoci spisak svega
+;; sto moze da sledi. Ugradjen je u Emacs 30, nije paket.
+;; Tsoding ga nema, ali on zna svoje precice napamet.
+(setq which-key-idle-delay 0.4             ; default je 1.0s -- predugo
+      which-key-idle-secondary-delay 0.05  ; unutar istog prefiksa, odmah
+      which-key-max-description-length 40)
+(which-key-mode 1)
+
 ;; Otvori fajl ciju putanju kursor dodiruje (npr. #include "foo.h")
 (global-set-key (kbd "C-x C-g") #'find-file-at-point)
 
