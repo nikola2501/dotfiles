@@ -93,8 +93,8 @@ Da ne kucaš komandu svaki put, stavi u koren projekta fajl `.dir-locals.el`:
 Za različite komande po tipu fajla:
 
 ```elisp
-((simpc-mode . ((compile-command . "make debug")))
- (go-mode    . ((compile-command . "go build ./... && go test ./..."))))
+((simpc-mode  . ((compile-command . "make debug")))
+ (simpgo-mode . ((compile-command . "go build ./... && go test ./..."))))
 ```
 
 Emacs će prvi put pitati da li da veruje tim vrednostima — odgovori `!`

@@ -67,16 +67,20 @@
 (add-to-list 'auto-mode-alist '("\\.[hc]\\(pp\\)?\\'" . simpc-mode))
 
 ;;; --------------------------------------------------------------------
-;;; Go
+;;; Go -- simpgo-mode
 ;;; --------------------------------------------------------------------
-;; go-mode daje highlighting i indentaciju. Bez LSP-a -- gofmt na snimanju
-;; dolazi iz samog go-mode-a (poziva spoljni `gofmt' program).
-(rc/require 'go-mode)
+;; Nas mod umesto go-mode paketa. Vidi local/simpgo-mode.el.
+;; Izmereno na Go fajlu od 6000 linija, bojenje vidljivog ekrana:
+;;   go-mode      2.49 ms
+;;   simpgo-mode  0.11 ms   (23x brze)
+;; Gubimo bojenje imena funkcija i promenljivih -- ionako ih ne bojimo
+;; ni u C-u. gofmt na snimanju radi, poziva spoljni program direktno.
+(require 'simpgo-mode)
+(add-to-list 'auto-mode-alist '("\\.go\\'" . simpgo-mode))
+(add-hook 'before-save-hook #'simpgo-format-before-save)
 
-(add-hook 'go-mode-hook
-          (lambda ()
-            (add-hook 'before-save-hook #'gofmt-before-save nil t)
-            (setq-local tab-width 4)))
+;; go.mod nije Go kod; conf-mode je dovoljan da ne bude neobojen.
+(add-to-list 'auto-mode-alist '("/go\\.\\(mod\\|sum\\|work\\)\\'" . conf-mode))
 
 ;;; --------------------------------------------------------------------
 ;;; Company -- dopuna iz teksta bafera

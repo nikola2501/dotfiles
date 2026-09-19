@@ -1,7 +1,7 @@
 # Emacs config — Tsoding škola
 
 Bez LSP-a, bez tree-sitter-a. Sve eksplicitno, ništa magično.
-Jezici: C (`simpc-mode`) i Go (`go-mode`).
+Jezici: C (`simpc-mode`) i Go (`simpgo-mode`), oba nasa.
 
 ## Struktura
 
@@ -11,11 +11,12 @@ rc/rc.el             bootstrap za pakete (rc/require)
 rc/misc-rc.el        sitne funkcije i bindinzi
 rc/compile-rc.el     compile workflow + rg  ← srce configa
 local/simpc-mode.el  Tsodingov minimalni C mod (127 linija)
+local/simpgo-mode.el Isto to za Go, pisano po njegovom uzoru
 custom.el            Custom-generisano, ne diraj ručno
 elpa/                instalirani paketi
 ```
 
-## Paketi (9)
+## Paketi (8)
 
 | Paket | Za šta |
 |---|---|
@@ -26,7 +27,6 @@ elpa/                instalirani paketi
 | `magit` | git |
 | `multiple-cursors` | višestruki kursori |
 | `move-text` | pomeranje linija `M-n`/`M-p` |
-| `go-mode` | Go highlighting + gofmt na snimanju |
 
 Instalacija je ručna, preko `rc/require` — vidi `rc/rc.el`. Nema `use-package`,
 nema lazy loadinga. Startup ~0.25s (prethodni config je bio 0.10s; ovo je
@@ -127,8 +127,20 @@ Na macOS-u: `brew install emacs-plus --with-native-comp ripgrep coreutils`.
 **C** — `simpc-mode` radi samo bojenje i indentaciju. Bez semantike, bez
 zaglavljivanja na makroima. Greške dobijaš iz `C-c c`.
 
-**Go** — `go-mode` + `gofmt` na snimanju (poziva spoljni program).
-`compile-command` je podešen na `go build ./... && go vet ./...`.
+**Go** — `simpgo-mode`, pisan po uzoru na `simpc`. Boji ključne reči,
+komentare i literale; imena funkcija i promenljivih ostaju neobojena.
+`gofmt` na snimanju poziva spoljni program direktno (ako kod ne parsira,
+bafer se ne dira). `compile-command` je `go build ./... && go vet ./...`.
+
+Izmereno na Go fajlu od 6000 linija:
+
+| | ceo fajl | vidljiv ekran |
+|---|---|---|
+| `go-mode` (paket, 3122 linije) | 562.8 ms | 2.49 ms |
+| `simpgo-mode` (190 linija) | 10.7 ms | **0.11 ms** |
+
+Isto poređenje za C: `simpc` 0.07 ms, `c-ts-mode` (tree-sitter) 60.5 ms
+po celom fajlu, `cc-mode` 5.75 ms po ekranu.
 
 ## Šta nije preneto od Tsodinga
 

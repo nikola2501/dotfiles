@@ -92,7 +92,7 @@ Sa prefiksom (C-u) pokrece se iz trenutnog foldera."
 (defun rc/go-compile-defaults ()
   (setq-local compile-command "go build ./... && go vet ./..."))
 
-(add-hook 'go-mode-hook #'rc/go-compile-defaults)
+(add-hook 'simpgo-mode-hook #'rc/go-compile-defaults)
 
 ;;; --------------------------------------------------------------------
 ;;; grep preko ripgrep-a
