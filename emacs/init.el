@@ -42,22 +42,41 @@
 (global-display-line-numbers-mode 1)
 
 ;;; --------------------------------------------------------------------
-;;; ido + smex -- completion stare skole
+;;; Completion -- vertico + orderless + marginalia
 ;;; --------------------------------------------------------------------
-;; ido: pretraga po baferima i fajlovima. Kucaj deo imena, C-s / C-r
-;; ciklaju kroz ponudjeno, RET potvrdjuje.
-(rc/require 'smex 'ido-completing-read+)
+;; Tsoding koristi ido + smex. ido lista kandidate VODORAVNO i ne pokazuje
+;; precice, sto je u redu ako ih znas napamet. Ovo je citljivija varijanta:
+;;
+;;   vertico     spisak odozdo, jedan kandidat po liniji, strelice biraju
+;;   orderless   kucaj delove bilo kojim redom: "comp proj" nalazi
+;;               project-compile
+;;   marginalia  desno od svake komande pise NJENA PRECICA i opis
+;;
+;; Ta treca je ono sto uci precice usput: svaki put kad nesto pokrenes
+;; preko M-x, vidis kojim tasterom si to mogao.
+(rc/require 'vertico 'orderless 'marginalia)
 
-(require 'ido-completing-read+)
+(require 'vertico)
+(require 'orderless)
+(require 'marginalia)
 
-(ido-mode 1)
-(ido-everywhere 1)
-(ido-ubiquitous-mode 1)
-(setq ido-enable-flex-matching t)
+(vertico-mode 1)
+(marginalia-mode 1)
 
-;; smex = M-x sortiran po tome sta najcesce koristis.
-(global-set-key (kbd "M-x") #'smex)
-(global-set-key (kbd "C-c C-c M-x") #'execute-extended-command) ; original
+(setq vertico-count 15                  ; koliko kandidata prikazati
+      vertico-cycle t)
+
+(setq completion-styles '(orderless basic)
+      completion-category-overrides '((file (styles basic partial-completion))))
+
+;; M-x ostaje ugradjeni execute-extended-command -- vertico ga preuzima.
+;; Emacs sam pamti istoriju, pa se ono sto koristis penje na vrh.
+(setq history-length 200)
+(savehist-mode 1)
+
+;; Posle svake komande pokrenute preko M-x, Emacs javi u echo areji
+;; "You can run the command X with KEY" -- jos jedan nacin da naucis precice.
+(setq suggest-key-bindings 5)
 
 ;;; --------------------------------------------------------------------
 ;;; C -- simpc-mode

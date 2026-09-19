@@ -93,7 +93,7 @@ U statusu: `s` stage · `u` unstage · `c c` commit (pa `C-c C-c` potvrdi) ·
 ## Kad zaglaviš
 | `C-g` | prekini |
 |---|---|
-| `M-x` | pokreni komandu po imenu (smex — sortiran po korišćenju) |
+| `M-x` | pokreni komandu po imenu — kucaj delove bilo kojim redom, prečica piše desno |
 | `C-h k` + taster | "šta radi ovaj taster?" |
 | `C-h t` | zvanični tutorial, 20 minuta |
 

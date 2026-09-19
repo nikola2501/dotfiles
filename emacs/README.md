@@ -16,13 +16,14 @@ custom.el            Custom-generisano, ne diraj ručno
 elpa/                instalirani paketi
 ```
 
-## Paketi (8)
+## Paketi (9)
 
 | Paket | Za šta |
 |---|---|
 | `naysayer-theme` | tema (paleta iz editora Jonathana Blowa) |
-| `smex` | `M-x` sortiran po korišćenju |
-| `ido-completing-read+` | completion za fajlove i bafere |
+| `vertico` | spisak kandidata odozdo, jedan po liniji |
+| `orderless` | kucaj delove reči bilo kojim redom |
+| `marginalia` | prikazuje prečicu i opis pored svake komande |
 | `company` | autocomplete iz teksta bafera (ne semantički) |
 | `magit` | git |
 | `multiple-cursors` | višestruki kursori |
