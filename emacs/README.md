@@ -10,6 +10,7 @@ init.el              glavni fajl, učitava rc/ module
 rc/rc.el             bootstrap za pakete (rc/require)
 rc/misc-rc.el        sitne funkcije i bindinzi
 rc/compile-rc.el     compile workflow + rg  ← srce configa
+rc/nav-rc.el         project.el backend, winner, dokumentacija (C-c h)
 local/simpc-mode.el  Tsodingov minimalni C mod (127 linija)
 local/simpgo-mode.el Isto to za Go, pisano po njegovom uzoru
 custom.el            Custom-generisano, ne diraj ručno

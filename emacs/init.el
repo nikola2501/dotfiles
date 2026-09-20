@@ -12,6 +12,7 @@
 (load (expand-file-name "rc/rc.el" user-emacs-directory))
 (load (expand-file-name "rc/misc-rc.el" user-emacs-directory))
 (load (expand-file-name "rc/compile-rc.el" user-emacs-directory))
+(load (expand-file-name "rc/nav-rc.el" user-emacs-directory))
 
 ;;; --------------------------------------------------------------------
 ;;; Izgled
