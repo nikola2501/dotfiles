@@ -1,213 +1,224 @@
-# Emacs config — Tsoding škola
+# Emacs config
 
-Bez LSP-a, bez tree-sitter-a. Sve eksplicitno, ništa magično.
-Jezici: C (`simpc-mode`) i Go (`simpgo-mode`), oba nasa.
-LSP postoji ali je ugašen — pali se ručno, po baferu (vidi dole).
+No LSP, no tree-sitter. Everything explicit, nothing magic.
+Languages: C (`simpc-mode`) and Go (`simpgo-mode`), both ours.
+LSP exists but stays off — you switch it on by hand, per buffer (see below).
 
-## Struktura
+## Layout
 
 ```
-init.el              glavni fajl, učitava rc/ module
-rc/rc.el             bootstrap za pakete (rc/require)
-rc/misc-rc.el        sitne funkcije i bindinzi
-rc/compile-rc.el     compile workflow + rg  ← srce configa
-rc/nav-rc.el         project.el backend, winner, dokumentacija (C-c h)
-rc/eglot-rc.el       LSP na zahtev, ugasen po defaultu (C-c l l)
-local/simpc-mode.el  Tsodingov minimalni C mod (127 linija)
-local/simpgo-mode.el Isto to za Go, pisano po njegovom uzoru
-custom.el            Custom-generisano, ne diraj ručno
-elpa/                instalirani paketi
+init.el              the main file, loads the rc/ modules
+rc/rc.el             package bootstrap (rc/require)
+rc/misc-rc.el        small functions and bindings
+rc/compile-rc.el     compile workflow + rg  <- the heart of the config
+rc/nav-rc.el         project.el backend, winner, docs (C-c h)
+rc/eglot-rc.el       LSP on demand, off by default (C-c l l)
+local/simpc-mode.el  a minimal C mode (127 lines)
+local/simpgo-mode.el the same idea for Go
+custom.el            Custom-generated, do not edit by hand
+elpa/                installed packages
 ```
 
-## Paketi (9)
+## Packages (8)
 
-| Paket | Za šta |
+| Package | What for |
 |---|---|
-| `naysayer-theme` | tema (paleta iz editora Jonathana Blowa) |
-| `vertico` | spisak kandidata odozdo, jedan po liniji |
-| `orderless` | kucaj delove reči bilo kojim redom |
-| `marginalia` | prikazuje prečicu i opis pored svake komande |
-| `company` | autocomplete iz teksta bafera (ne semantički) |
+| `naysayer-theme` | the theme |
+| `vertico` | candidate list at the bottom, one per line |
+| `orderless` | type fragments of a name in any order |
+| `marginalia` | shows the shortcut and a description next to each command |
+| `company` | completion from buffer text, not semantic |
 | `magit` | git |
-| `multiple-cursors` | višestruki kursori |
-| `move-text` | pomeranje linija `M-n`/`M-p` |
+| `multiple-cursors` | multiple cursors |
+| `move-text` | move lines with `M-n` / `M-p` |
 
-Instalacija je ručna, preko `rc/require` — vidi `rc/rc.el`. Nema `use-package`,
-nema lazy loadinga. Startup ~0.25s (prethodni config je bio 0.10s; ovo je
-cena eager učitavanja i Tsoding je svesno plaća).
+Installation is manual, through `rc/require` — see `rc/rc.el`. No
+`use-package`, no lazy loading. Startup is 0.20 s measured with
+`emacs-init-time`; that is the price of eager loading, paid knowingly.
 
-## Tema
+`elpa/` also holds `ido-completing-read+`, `smex`, `posframe` and `memoize`,
+left over from the earlier completion setup and no longer loaded by anything.
+`gruber-darker-theme` is kept on purpose. The rest are dependencies of magit.
 
-`naysayer` — pozadina `#062329`, tekst `#d1b897`, komentari `#44b340`.
-Emacs u terminalu emituje pravi 24-bitni RGB, pa izgleda isto kao u GUI-ju
-(terminal mora podržavati truecolor — kitty/alacritty/foot/wezterm da).
+## Theme
 
-**Važno za daemon:** bez `COLORTERM=truecolor` u okruženju *daemona* frame
-dobija samo 256 boja i Emacs aproksimira boje teme — `#062329` postane
-navy `#00005f`. Zato je ta promenljiva u
-`~/.config/systemd/user/emacs.service.d/path.conf`. Postavljanje `COLORTERM`
-u shell-u ne pomaže: `emacsclient` je ne prosleđuje daemonu.
+`naysayer` — background `#062329`, text `#d1b897`, comments `#44b340`.
+Emacs in a terminal emits real 24-bit RGB, so it looks the same as in a GUI
+frame (the terminal has to support truecolor — kitty, alacritty, foot and
+wezterm do).
 
-Promena teme: izmeni `rc/require-theme` u `init.el` pa `emacs-restart`.
-`gruber-darker` je i dalje instalirana ako hoćeš nazad.
+**Important for the daemon:** without `COLORTERM=truecolor` in the *daemon's*
+environment a frame only gets 256 colors and Emacs approximates the theme —
+`#062329` turns into navy `#00005f`. That is why the variable lives in
+`~/.config/systemd/user/emacs.service.d/path.conf`. Setting `COLORTERM` in
+the shell does not help: `emacsclient` does not forward it to the daemon.
 
-## vc je isključen
+Changing the theme: edit `rc/require-theme` in `init.el`, then `emacs-restart`.
+`gruber-darker` is still installed if you want to go back.
 
-`(setq vc-handled-backends nil)` u `rc/misc-rc.el`.
+## vc is switched off
 
-Emacs za svaki otvoreni fajl pokreće `git status --porcelain -z -- <fajl>`
-samo da bi ispisao `Git:main` u modeline. Na velikom repou ta komanda sa
-pathspec-om gubi git-ov untracked keš i lstat-uje celo stablo.
+`(setq vc-handled-backends nil)` in `rc/misc-rc.el`.
 
-Izmereno na `repos/me/topolib` (19G, `.git` 2.3G, 8925 fajlova):
+For every file it opens, Emacs runs `git status --porcelain -z -- <file>`
+just to print `Git:main` in the mode line. On a large repository that command
+with a pathspec loses git's untracked cache and lstats the whole tree.
+
+Measured on `repos/me/topolib` (19G, `.git` 2.3G, 8925 files):
 
 | | |
 |---|---|
-| `git status --porcelain -z -- 2048.go` | 1086 ms (7% CPU — čeka I/O) |
-| `git status --porcelain -uall` (ceo repo) | 29 ms |
-| otvaranje fajla **sa** vc | 1113 ms |
-| otvaranje fajla **bez** vc | 7 ms |
+| `git status --porcelain -z -- 2048.go` | 1086 ms (7% CPU — waiting on I/O) |
+| `git status --porcelain -uall` (whole repo) | 29 ms |
+| opening a file **with** vc | 1113 ms |
+| opening a file **without** vc | 7 ms |
 
-Magit ne koristi vc i radi normalno (`C-c m s`). Gubiš samo `Git:main` u
-modeline-u i `C-x v` komande.
+Magit does not use vc and works normally (`C-c m s`). All you lose is
+`Git:main` in the mode line and the `C-x v` commands.
 
-## Dokumentacija
+Note that `project.el` finds projects through vc, so switching vc off breaks
+the whole `C-x p` prefix. `rc/nav-rc.el` puts it back with its own backend.
 
-- `COMPILE.md` — compile workflow, glavna stvar za naučiti
-- `CHEATSHEET.md` — prečice, Vim → Emacs
+## Documentation
 
-## Instalacija
+- `COMPILE.md` — the compile workflow, the main thing to learn
+- `CHEATSHEET.md` — shortcuts, Vim to Emacs
+
+Both open from inside any project: `C-c h k` and `C-c h c`.
+
+## Installation
 
 ```sh
-./install-emacs.sh              # symlinkuje config + podesi daemon
-./install-emacs.sh --no-daemon  # samo config
-./install-emacs.sh --dry-run    # pokazi sta bi uradio
-./install-emacs.sh --uninstall  # vrati sve kako je bilo
+./install-emacs.sh              # symlink the config and set up the daemon
+./install-emacs.sh --no-daemon  # config only
+./install-emacs.sh --dry-run    # show what it would do
+./install-emacs.sh --uninstall  # put everything back
 ```
 
-Radi na Linuxu (systemd) i macOS-u (launchd). Paketi se NE čuvaju u repou —
-Emacs ih sam skine sa MELPA pri prvom pokretanju (`rc/rc.el`), pa prvi start
-traje par sekundi i treba mu mreža.
+Works on Linux (systemd) and macOS (launchd). Packages are NOT kept in the
+repository — Emacs downloads them from MELPA on the first run (`rc/rc.el`),
+so the first start takes a few seconds and needs a network.
 
-Šta ostaje lokalno na mašini i ne ide u git: `elpa/`, `eln-cache/`, `var/`,
+What stays on the machine and out of git: `elpa/`, `eln-cache/`, `var/`,
 `custom.el`.
 
-## Pokretanje
+## Running it
 
 ```sh
-ec fajl.c        # emacsclient -t, na daemonu
-e fajl.c         # emacs -nw, samostalno
-emacs-restart    # posle izmene configa
+ec file.c        # emacsclient -t, against the daemon
+e file.c         # emacs -nw, standalone
+emacs-restart    # after changing the config
 ```
 
-`C-x C-c` zatvara samo tvoj frame, daemon ostaje.
+`C-x C-c` closes your frame only; the daemon keeps running. This is worth
+remembering: config changes do not appear until the daemon itself restarts.
+`M-x emacs-uptime` tells you how long the process has been up, and the frame
+name in the mode line (`F1`, `F2`, ...) counts frames within one process.
 
-### Daemon i okruženje
+### The daemon and its environment
 
-Daemon startuje systemd/launchd, ne tvoj shell — pa **ne vidi ništa što
-exportuješ u `.zshrc`**. Dve stvari mu se moraju proslediti, i installer to
-radi:
+The daemon is started by systemd or launchd, not by your shell, so it **sees
+nothing you export in `.zshrc`**. Two things have to be handed to it, and the
+installer does that:
 
 | | |
 |---|---|
-| `PATH` | inače ne nalazi `go`, `gofmt`, `rg` (compile, `C-c s`) |
-| `COLORTERM=truecolor` | inače svaki tty frame pada na 256 boja |
+| `PATH` | otherwise it cannot find `go`, `gofmt`, `rg` (compile, `C-c s`) |
+| `COLORTERM=truecolor` | otherwise every tty frame drops to 256 colors |
 
 Linux: `~/.config/systemd/user/emacs.service.d/dotfiles.conf`
 macOS: `~/Library/LaunchAgents/gnu.emacs.daemon.plist`
 
-Dodaš novi folder u `PATH` → dodaj ga u `install-emacs.sh` (promenljiva
-`DAEMON_PATH`) pa pokreni installer ponovo.
+Adding a directory to `PATH` means adding it to `install-emacs.sh` (the
+`DAEMON_PATH` variable) and running the installer again.
 
-### Zavisnosti
+### Dependencies
 
-`git` (magit), `rg` (`C-c s`), `go` + `gofmt`, `make`/`gcc` (compile).
-Installer proverava i javlja šta fali, ali ne instalira ništa.
+`git` (magit), `rg` (`C-c s`), `go` + `gofmt`, `make` / `gcc` (compile).
+The installer checks and reports what is missing; it installs nothing.
 
-Na macOS-u: `brew install emacs-plus --with-native-comp ripgrep coreutils`.
+On macOS: `brew install emacs-plus --with-native-comp ripgrep coreutils`.
 
-## Jezici
+## Languages
 
-**C** — `simpc-mode` radi samo bojenje i indentaciju. Bez semantike, bez
-zaglavljivanja na makroima. Greške dobijaš iz `C-c c`.
+**C** — `simpc-mode` only does highlighting and indentation. No semantics, no
+hanging on macros. Errors come from `C-c c`.
 
-**Go** — `simpgo-mode`, pisan po uzoru na `simpc`. Boji ključne reči,
-komentare i literale; imena funkcija i promenljivih ostaju neobojena.
-`gofmt` na snimanju poziva spoljni program direktno (ako kod ne parsira,
-bafer se ne dira). `compile-command` je `go build ./... && go vet ./...`.
+**Go** — `simpgo-mode`, built on the same idea. Highlights keywords, comments
+and literals; function and variable names stay uncoloured. `gofmt` on save
+calls the external program directly (if the code does not parse, the buffer
+is left alone). `compile-command` is `go build ./... && go vet ./...`.
 
-Izmereno na Go fajlu od 6000 linija:
+Measured on a 6000-line Go file:
 
-| | ceo fajl | vidljiv ekran |
+| | whole file | visible screen |
 |---|---|---|
-| `go-mode` (paket, 3122 linije) | 562.8 ms | 2.49 ms |
-| `simpgo-mode` (190 linija) | 10.7 ms | **0.11 ms** |
+| `go-mode` (package, 3122 lines) | 562.8 ms | 2.49 ms |
+| `simpgo-mode` (190 lines) | 10.7 ms | **0.11 ms** |
 
-Isto poređenje za C: `simpc` 0.07 ms, `c-ts-mode` (tree-sitter) 60.5 ms
-po celom fajlu, `cc-mode` 5.75 ms po ekranu.
+The same comparison for C: `simpc` 0.07 ms, `c-ts-mode` (tree-sitter) 60.5 ms
+over the whole file, `cc-mode` 5.75 ms per screen.
 
-## LSP — na zahtev, ne po defaultu
+## LSP — on demand, not by default
 
-Za tuđe projekte koje ne poznaješ. Za svoje ostaje regexp + grep.
+For other people's code. Own projects keep the regexp and grep workflow.
 
-`rc/eglot-rc.el`. Nije paket — `eglot` je ugrađen u Emacs 30 i **autoloadovan**,
-pa dok ga ne pozoveš ne postoji u memoriji.
+`rc/eglot-rc.el`. Not a package — `eglot` ships with Emacs 30 and is
+**autoloaded**, so until you call it, it is not in memory at all.
 
 ```
-C-c l l    upali u ovom baferu     (gopls za Go, clangd za C)
-C-c l q    ugasi, server umire s njim
-C-c l r    preimenuj simbol svuda
+C-c l l    turn it on in this buffer   (gopls for Go, clangd for C)
+C-c l q    turn it off, the server dies with it
+C-c l r    rename the symbol everywhere
 C-c l a    code actions / quick fix
 ```
 
-Dok je upaljen, u modeline-u piše `[eglot:gopls]` i dobijaš:
+While it runs the mode line shows `[eglot:gopls]` and you get:
 
 | | |
 |---|---|
-| `M-.` | skok na definiciju, tačan (`C-c d` je regexp, ostaje i dalje) |
-| `M-,` | nazad |
-| `M-?` | sve reference |
-| `C-h .` | dokumentacija za simbol pod kursorom |
-| `M-g n` / `M-g p` | kroz dijagnostiku, iste prečice kao za greške |
+| `M-.` | jump to the definition, precisely (`C-c d`, the regexp one, stays) |
+| `M-,` | jump back |
+| `M-?` | every reference |
+| `C-h .` | documentation for the symbol under point |
+| `M-g n` / `M-g p` | walk the diagnostics, the same keys as for errors |
 
-Company postaje semantički sam od sebe — `company-capf` je već prvi backend.
+Completion turns semantic on its own — `company-capf` is already the first
+backend.
 
-### Šta košta
+### What it costs
 
-Ništa dok ga ne upališ. Mereno:
+Nothing until you switch it on. Measured:
 
 | | |
 |---|---|
 | `load rc/eglot-rc.el` | 0.12 ms |
-| startup sa / bez fajla | 162 / 163 ms (u šumu merenja) |
-| `post-command-hook` | nepromenjen, samo `eldoc-schedule-timer` |
-| `featurep 'eglot` posle starta | `nil` |
-| prvi `require` pri `C-c l l` | 21 ms, plaća se samo tada |
+| startup with / without the file | 162 / 163 ms (inside the noise) |
+| `post-command-hook` | unchanged, only `eldoc-schedule-timer` |
+| `featurep 'eglot` after startup | `nil` |
+| the first `require`, on `C-c l l` | 21 ms, paid only then |
 
-Ceo fajl je jedan `with-eval-after-load` plus četiri bindinga.
+The whole file is one `with-eval-after-load` plus four bindings.
 
-### Detalji
+### Details
 
-`simpgo-mode` i `simpc-mode` su naši modovi, eglot ih ne zna — mapiranje na
-`gopls`/`clangd` je dopisano u `eglot-server-programs`.
+`simpgo-mode` and `simpc-mode` are ours and eglot does not know them, so
+`gopls` and `clangd` are mapped onto them by hand in `eglot-server-programs`.
 
-Koren projekta eglot traži preko `project.el`, dakle kroz backend iz
-`rc/nav-rc.el` — isti koren iz kog `C-c c` builduje.
+eglot finds the project root through `project.el`, which means through the
+backend in `rc/nav-rc.el` — the same root `C-c c` builds from.
 
-Dva podešavanja važe samo dok je upaljen: `eglot-events-buffer-config` na
-veličinu 0 (default loguje svaku JSON poruku u bafer od 2 MB) i
-`eglot-autoshutdown t` (bez toga `gopls` visi u pozadini kad zatvoriš bafere).
+Two settings apply only while a server runs: `eglot-events-buffer-config` at
+size 0 (the default logs every JSON message into a 2 MB buffer) and
+`eglot-autoshutdown t` (without it `gopls` lingers in the background once you
+close the project's buffers).
 
-`clangd` traži `compile_commands.json` u korenu; `gopls` samo `go.mod`.
+`clangd` wants a `compile_commands.json` at the root; `gopls` only needs
+`go.mod`.
 
-Brisanje: obriši `rc/eglot-rc.el` i njegovu `load` liniju iz `init.el`.
+To remove it: delete `rc/eglot-rc.el` and its `load` line from `init.el`.
 
-## Šta nije preneto od Tsodinga
+## Previous configs
 
-Njegovi jezici (porth, noq, basm, jai, umka, c3, fasm, tatr), njegovi
-snippeti, org/agenda setup, autocommit, helm, paredit, ruski input.
-
-## Prethodni configi
-
-Ovaj config je zamenio Doom Emacs. Stari Doom config stoji u `emacs/doom/`
-u ovom repou, nekorišćen — obriši ga slobodno ako ti ne treba.
+This config replaced Doom Emacs. The old Doom config still sits in
+`emacs/doom/` in this repository, unused — delete it if you do not need it.
