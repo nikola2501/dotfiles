@@ -2,6 +2,7 @@
 
 Bez LSP-a, bez tree-sitter-a. Sve eksplicitno, ništa magično.
 Jezici: C (`simpc-mode`) i Go (`simpgo-mode`), oba nasa.
+LSP postoji ali je ugašen — pali se ručno, po baferu (vidi dole).
 
 ## Struktura
 
@@ -11,6 +12,7 @@ rc/rc.el             bootstrap za pakete (rc/require)
 rc/misc-rc.el        sitne funkcije i bindinzi
 rc/compile-rc.el     compile workflow + rg  ← srce configa
 rc/nav-rc.el         project.el backend, winner, dokumentacija (C-c h)
+rc/eglot-rc.el       LSP na zahtev, ugasen po defaultu (C-c l l)
 local/simpc-mode.el  Tsodingov minimalni C mod (127 linija)
 local/simpgo-mode.el Isto to za Go, pisano po njegovom uzoru
 custom.el            Custom-generisano, ne diraj ručno
@@ -143,6 +145,62 @@ Izmereno na Go fajlu od 6000 linija:
 
 Isto poređenje za C: `simpc` 0.07 ms, `c-ts-mode` (tree-sitter) 60.5 ms
 po celom fajlu, `cc-mode` 5.75 ms po ekranu.
+
+## LSP — na zahtev, ne po defaultu
+
+Za tuđe projekte koje ne poznaješ. Za svoje ostaje regexp + grep.
+
+`rc/eglot-rc.el`. Nije paket — `eglot` je ugrađen u Emacs 30 i **autoloadovan**,
+pa dok ga ne pozoveš ne postoji u memoriji.
+
+```
+C-c l l    upali u ovom baferu     (gopls za Go, clangd za C)
+C-c l q    ugasi, server umire s njim
+C-c l r    preimenuj simbol svuda
+C-c l a    code actions / quick fix
+```
+
+Dok je upaljen, u modeline-u piše `[eglot:gopls]` i dobijaš:
+
+| | |
+|---|---|
+| `M-.` | skok na definiciju, tačan (`C-c d` je regexp, ostaje i dalje) |
+| `M-,` | nazad |
+| `M-?` | sve reference |
+| `C-h .` | dokumentacija za simbol pod kursorom |
+| `M-g n` / `M-g p` | kroz dijagnostiku, iste prečice kao za greške |
+
+Company postaje semantički sam od sebe — `company-capf` je već prvi backend.
+
+### Šta košta
+
+Ništa dok ga ne upališ. Mereno:
+
+| | |
+|---|---|
+| `load rc/eglot-rc.el` | 0.12 ms |
+| startup sa / bez fajla | 162 / 163 ms (u šumu merenja) |
+| `post-command-hook` | nepromenjen, samo `eldoc-schedule-timer` |
+| `featurep 'eglot` posle starta | `nil` |
+| prvi `require` pri `C-c l l` | 21 ms, plaća se samo tada |
+
+Ceo fajl je jedan `with-eval-after-load` plus četiri bindinga.
+
+### Detalji
+
+`simpgo-mode` i `simpc-mode` su naši modovi, eglot ih ne zna — mapiranje na
+`gopls`/`clangd` je dopisano u `eglot-server-programs`.
+
+Koren projekta eglot traži preko `project.el`, dakle kroz backend iz
+`rc/nav-rc.el` — isti koren iz kog `C-c c` builduje.
+
+Dva podešavanja važe samo dok je upaljen: `eglot-events-buffer-config` na
+veličinu 0 (default loguje svaku JSON poruku u bafer od 2 MB) i
+`eglot-autoshutdown t` (bez toga `gopls` visi u pozadini kad zatvoriš bafere).
+
+`clangd` traži `compile_commands.json` u korenu; `gopls` samo `go.mod`.
+
+Brisanje: obriši `rc/eglot-rc.el` i njegovu `load` liniju iz `init.el`.
 
 ## Šta nije preneto od Tsodinga
 
