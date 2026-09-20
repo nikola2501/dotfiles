@@ -217,8 +217,3 @@ close the project's buffers).
 `go.mod`.
 
 To remove it: delete `rc/eglot-rc.el` and its `load` line from `init.el`.
-
-## Previous configs
-
-This config replaced Doom Emacs. The old Doom config still sits in
-`emacs/doom/` in this repository, unused — delete it if you do not need it.
