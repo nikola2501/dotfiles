@@ -88,6 +88,43 @@
 (setq whitespace-style '(face trailing))
 
 ;;; --------------------------------------------------------------------
+;;; Skrolovanje
+;;; --------------------------------------------------------------------
+;; Default ponasanje: kad kursor izadje sa ekrana, Emacs PRESKOCI pola
+;; ekrana i recentrira kursor. Zato izgleda kao da nova stranica iskoci
+;; odjednom, umesto da tekst klizi.
+;;
+;; `scroll-conservatively' veci od 100 znaci "nikad ne recentriraj, samo
+;; pomeri onoliko linija koliko treba" -- a treba obicno jedna.
+(setq scroll-conservatively 101
+      scroll-margin 3                    ; 3 linije konteksta ispod kursora
+      scroll-preserve-screen-position t  ; C-v pa M-v vraca kursor gde je bio
+      auto-window-vscroll nil)           ; ne racunaj pod-linijsko skrolovanje
+
+;; Ovo gore vazi SAMO kad kursor izadje sa ekrana (strelice, C-n, C-p).
+;; Dve druge stvari skroluju po sopstvenim pravilima:
+
+;; 1) PageUp/PageDown i C-v/M-v su po definiciji skok za celu stranicu.
+;;    Ne moze da klizi -- to im je posao. Jedino se moze povecati preklop,
+;;    tj. koliko linija sa starog ekrana ostane vidljivo posle skoka.
+;;    Default je 2, sto je premalo da uhvatis gde si bio.
+(setq next-screen-context-lines 5)
+
+;; 2) Tockic misa. U terminalu Emacs NE DOBIJA dogadjaje tockica dok se
+;;    xterm-mouse-mode ne ukljuci -- dotle tockic pomera scrollback samog
+;;    terminala, pa izgleda kao da ekran skace. Mereno: 1.2 ms pri startu,
+;;    nista na post/pre-command-hook, dakle kucanje ne dodiruje.
+;;
+;;    Cena: Emacs preuzima mis, pa selekcija misem vise nije terminalova
+;;    nego Emacsova (za terminalovu drzi Shift dok vuces).
+(xterm-mouse-mode 1)
+
+;; Tri linije po zarezu tockica, bez ubrzavanja. Default `progressive-speed'
+;; mnozi korak sto brze vrtis, sto u terminalu daje neujednacene skokove.
+(setq mouse-wheel-scroll-amount '(3 ((shift) . 1) ((control) . text-scale))
+      mouse-wheel-progressive-speed nil)
+
+;;; --------------------------------------------------------------------
 ;;; Performanse
 ;;; --------------------------------------------------------------------
 ;; Posteno: od svega ovde, jedino je iskljucivanje vc-a (gore) dalo merljivu
