@@ -1,7 +1,7 @@
 # Emacs config
 
 No LSP, no tree-sitter. Everything explicit, nothing magic.
-Languages: C (`simpc-mode`) and Go (`simpgo-mode`), both ours.
+Languages: C (`simpc-mode`), Go (`simpgo-mode`) and Odin (`simpodin-mode`), all ours.
 LSP exists but stays off — you switch it on by hand, per buffer (see below).
 
 ## Layout
@@ -15,6 +15,7 @@ rc/nav-rc.el         project.el backend, winner, docs (C-c h)
 rc/eglot-rc.el       LSP on demand, off by default (C-c l l)
 local/simpc-mode.el  a minimal C mode (127 lines)
 local/simpgo-mode.el the same idea for Go
+local/simpodin-mode.el  and for Odin
 custom.el            Custom-generated, do not edit by hand
 elpa/                installed packages
 ```
@@ -123,7 +124,7 @@ installer does that:
 
 | | |
 |---|---|
-| `PATH` | otherwise it cannot find `go`, `gofmt`, `rg` (compile, `C-c s`) |
+| `PATH` | otherwise it cannot find `go`, `gofmt`, `odin`, `ols`, `rg` (compile, `C-c s`) |
 | `COLORTERM=truecolor` | otherwise every tty frame drops to 256 colors |
 
 Linux: `~/.config/systemd/user/emacs.service.d/dotfiles.conf`
@@ -134,7 +135,8 @@ Adding a directory to `PATH` means adding it to `install-emacs.sh` (the
 
 ### Dependencies
 
-`git` (magit), `rg` (`C-c s`), `go` + `gofmt`, `make` / `gcc` (compile).
+`git` (magit), `rg` (`C-c s`), `go` + `gofmt`, `odin`, `make` / `gcc` (compile).
+Optional, only for LSP: `gopls`, `clangd`, `ols`.
 The installer checks and reports what is missing; it installs nothing.
 
 On macOS: `brew install emacs-plus --with-native-comp ripgrep coreutils`.
@@ -159,6 +161,24 @@ Measured on a 6000-line Go file:
 The same comparison for C: `simpc` 0.07 ms, `c-ts-mode` (tree-sitter) 60.5 ms
 over the whole file, `cc-mode` 5.75 ms per screen.
 
+**Odin** — `simpodin-mode`, the same recipe again. Highlights the 40 keywords
+(copied from the compiler's own tokenizer), builtin types, directives
+(`#partial`, `#force_inline`), attributes (`@(private)`), `---`, literals and
+nested `/* /* */ */` comments. Indents with tabs, `case` at the level of its
+`switch`, like the core library. Lines inside `/* */` and raw strings are left
+alone. No formatting on save — Odin has no canonical formatter; with LSP on,
+`M-x eglot-format` goes through `ols`.
+
+`compile-command` is `odin build <package dir relative to the root>`, because
+Odin builds a directory, not a file. Odin prints errors as `file.odin(12:5)`,
+which no built-in regexp knows, so `rc/compile-rc.el` adds one — `M-g n`
+works for `build`, `run`, `check` and `test`. `C-c d` finds `Name :`
+declarations; `C-u C-c d` also searches `odin root` (base, core, vendor).
+
+Measured on the largest file in `core` (13 335 lines): 78 ms for the whole
+file, **0.17 ms** per screen. On `core/fmt`, `core/strings` and
+`core/odin/parser` the indentation matches the original on 98–100% of lines.
+
 ## LSP — on demand, not by default
 
 For other people's code. Own projects keep the regexp and grep workflow.
@@ -167,7 +187,7 @@ For other people's code. Own projects keep the regexp and grep workflow.
 **autoloaded**, so until you call it, it is not in memory at all.
 
 ```
-C-c l l    turn it on in this buffer   (gopls for Go, clangd for C)
+C-c l l    turn it on in this buffer   (gopls for Go, clangd for C, ols for Odin)
 C-c l q    turn it off, the server dies with it
 C-c l r    rename the symbol everywhere
 C-c l a    code actions / quick fix
@@ -202,8 +222,10 @@ The whole file is one `with-eval-after-load` plus four bindings.
 
 ### Details
 
-`simpgo-mode` and `simpc-mode` are ours and eglot does not know them, so
-`gopls` and `clangd` are mapped onto them by hand in `eglot-server-programs`.
+`simpgo-mode`, `simpc-mode` and `simpodin-mode` are ours and eglot does not
+know them, so `gopls`, `clangd` and `ols` are mapped onto them by hand in
+`eglot-server-programs`. For `ols` the language id is also set to `odin`,
+since eglot would otherwise send `simpodin`.
 
 eglot finds the project root through `project.el`, which means through the
 backend in `rc/nav-rc.el` — the same root `C-c c` builds from.
@@ -214,6 +236,7 @@ size 0 (the default logs every JSON message into a 2 MB buffer) and
 close the project's buffers).
 
 `clangd` wants a `compile_commands.json` at the root; `gopls` only needs
-`go.mod`.
+`go.mod`; `ols` works without anything, and reads `ols.json` from the root if
+there is one (`ols.json` also counts as a project root anchor).
 
 To remove it: delete `rc/eglot-rc.el` and its `load` line from `init.el`.

@@ -2,7 +2,7 @@
 ;;
 ;; Filozofija: sve eksplicitno, nista magicno. Bez LSP-a, bez tree-sitter-a.
 ;; Highlighting ide preko regexp-a, navigacija preko imenu/grep-a, a greske
-;; preko compile bafera. Jezici: C i Go.
+;; preko compile bafera. Jezici: C, Go i Odin.
 
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
 
@@ -102,6 +102,15 @@
 
 ;; go.mod nije Go kod; conf-mode je dovoljan da ne bude neobojen.
 (add-to-list 'auto-mode-alist '("/go\\.\\(mod\\|sum\\|work\\)\\'" . conf-mode))
+
+;;; --------------------------------------------------------------------
+;;; Odin -- simpodin-mode
+;;; --------------------------------------------------------------------
+;; Isti recept kao simpgo-mode. Vidi local/simpodin-mode.el.
+;; Nema formatiranja na snimanju: Odin nema kanonski formatter kao gofmt.
+;; Kad je LSP upaljen (C-c l l), M-x eglot-format radi kroz ols.
+(require 'simpodin-mode)
+(add-to-list 'auto-mode-alist '("\\.odin\\'" . simpodin-mode))
 
 ;;; --------------------------------------------------------------------
 ;;; Company -- dopuna iz teksta bafera

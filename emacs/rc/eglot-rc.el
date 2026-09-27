@@ -26,13 +26,17 @@
   ;; modovi se zovu drugacije, pa ih treba dopisati.
   (add-to-list 'eglot-server-programs '(simpgo-mode . ("gopls")))
   (add-to-list 'eglot-server-programs '(simpc-mode  . ("clangd")))
+  ;; eglot bi serveru poslao languageId "simpodin" (ime moda bez -mode),
+  ;; a ols ocekuje "odin" -- zato se navodi eksplicitno.
+  (add-to-list 'eglot-server-programs
+               '((simpodin-mode :language-id "odin") . ("ols")))
 
   ;; Default loguje SVAKU JSON poruku izmedju Emacsa i servera u bafer od
   ;; 2 MB. Korisno za debug samog eglota, cista cena inace.
   (setq eglot-events-buffer-config '(:size 0 :format full))
 
   ;; Kad zatvoris poslednji bafer projekta, ugasi i server. Bez ovoga
-  ;; gopls ostane da visi u pozadini i drzi memoriju.
+  ;; gopls (ili ols) ostane da visi u pozadini i drzi memoriju.
   (setq eglot-autoshutdown t))
 
 ;; Koren projekta eglot trazi preko project.el -- istog onog backend-a iz

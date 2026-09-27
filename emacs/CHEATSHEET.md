@@ -31,7 +31,8 @@ COMPILE WORKFLOW  --  the main thing
   M-g p             previous error
   C-c s             rg search across the project (same machinery, M-g n works)
   C-c d             WHERE IS THIS DEFINED (greps the shape of a declaration)
-  C-u C-c d         same, plus dependencies (go mod cache, /usr/include)
+  C-u C-c d         same, plus dependencies (go mod cache, /usr/include,
+                    odin root)
   C-c D             go doc for the symbol under the cursor
 
   Full writeup: COMPILE.md  (C-c h k)
@@ -155,7 +156,7 @@ ACROSS THE PROJECT
 --------------------------------------------------------------------------------
 
 The project root is the nearest directory upward containing Makefile, go.mod,
-build.sh or .git -- the SAME root C-c c builds from.
+build.sh, ols.json or .git -- the SAME root C-c c builds from.
 
   C-x p f           FIND FILE IN PROJECT (type fragments, orderless handles it)
   C-x p b           switch to a buffer belonging to this project
@@ -200,7 +201,7 @@ Off by default. eglot is built into Emacs 30 and is not even loaded until you
 run it, so it costs nothing while you do not use it. Turn it on per project,
 in a buffer, when you land in code you do not know.
 
-  C-c l l           turn LSP on here        (gopls for Go, clangd for C)
+  C-c l l           turn LSP on here        (gopls Go, clangd C, ols Odin)
   C-c l q           turn it off, the server process dies with it
   C-c l r           rename the symbol everywhere
   C-c l a           code actions / quick fix
@@ -217,7 +218,8 @@ While it is on you also get, in place of the regexp tricks:
   backend, so the same TAB works, it just gets better answers.
 
   clangd wants a compile_commands.json in the project root; gopls only needs
-  go.mod. Without those the server starts but knows very little.
+  go.mod. Without those the server starts but knows very little. ols needs
+  nothing (an ols.json in the root is optional).
 
 
 ================================================================================

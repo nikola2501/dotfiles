@@ -48,7 +48,7 @@
    ((string-equal path "/") nil)
    (t (rc/root-anchor (rc/parent-directory path) anchor))))
 
-(defvar rc/compile-anchors '("Makefile" "makefile" "go.mod" "build.sh" ".git")
+(defvar rc/compile-anchors '("Makefile" "makefile" "go.mod" "build.sh" "ols.json" ".git")
   "Fajlovi po kojima se prepoznaje koren projekta, redom po prioritetu.")
 
 (defun rc/project-root ()
@@ -107,6 +107,28 @@ Sa prefiksom (C-u) pokrece se iz trenutnog foldera."
 (add-hook 'simpgo-mode-hook #'rc/go-compile-defaults)
 
 ;;; --------------------------------------------------------------------
+;;; Odin
+;;; --------------------------------------------------------------------
+;; Odin gresku pise kao "fajl.odin(12:5) Error: ...", sa zagradama umesto
+;; dvotacki, pa ga ugradjeni regexpi ne prepoznaju. Jedan red to resava,
+;; i vazi za `odin build', `odin run', `odin check' i `odin test'.
+;; Grupa 4 (Warning) znaci upozorenje; sve ostalo je greska.
+(add-to-list 'compilation-error-regexp-alist-alist
+             '(odin "^\\(.+?\\.odin\\)(\\([0-9]+\\):\\([0-9]+\\)) \\(?:\\(Warning\\)\\|[A-Za-z ]*Error\\)"
+                    1 2 3 (4)))
+(add-to-list 'compilation-error-regexp-alist 'odin)
+
+;; Odin builduje FOLDER (paket), ne fajl. Koren projekta ne mora biti taj
+;; folder -- npr. repo/.git a kod u repo/src/ -- pa komanda dobija putanju
+;; paketa relativno od korena: "odin build src/" ili "odin build ./".
+(defun rc/odin-compile-defaults ()
+  (setq-local compile-command
+              (format "odin build %s"
+                      (file-relative-name default-directory (rc/project-root)))))
+
+(add-hook 'simpodin-mode-hook #'rc/odin-compile-defaults)
+
+;;; --------------------------------------------------------------------
 ;;; grep preko ripgrep-a
 ;;; --------------------------------------------------------------------
 ;; Kljucna stvar za razumeti: grep rezultati i greske iz kompajlera idu
@@ -151,6 +173,12 @@ Sa prefiksom (C-u) pokrece se iz trenutnog foldera."
                "|^[A-Za-z_][\\w \\t\\*]*\\b" s "\\s*\\("
                "|^\\s*(struct|enum|union)\\s+" s "\\s*\\{"
                "|^\\s*typedef\\b.*\\b" s "\\s*;"))
+      ('simpodin-mode
+       ;; U Odinu je SVAKA deklaracija "Ime :" na pocetku linije:
+       ;;   Ime :: proc | Ime :: struct | Ime :: 42 | Ime : T : v
+       ;;   Ime := ... | Ime: T (polje strukture, promenljiva)
+       ;; Opciono sa atributom ispred: @(private) Ime :: ...
+       (concat "^\\s*(@\\S+\\s+)?" s "\\s*:"))
       (_ (concat "(def|function|class|struct|type|const|var)\\s+" s "\\b")))))
 
 (defun rc/dep-dirs ()
@@ -162,6 +190,11 @@ Sa prefiksom (C-u) pokrece se iz trenutnog foldera."
          (list cache))))
     ('simpc-mode
      (seq-filter #'file-directory-p '("/usr/include" "/usr/local/include")))
+    ('simpodin-mode
+     ;; `odin root' = folder sa base/, core/, vendor/, shared/
+     (let ((root (string-trim (shell-command-to-string "odin root 2>/dev/null"))))
+       (when (and (not (string-empty-p root)) (file-directory-p root))
+         (list (directory-file-name root)))))
     (_ nil)))
 
 (defun rc/rg-def (sym &optional with-deps)

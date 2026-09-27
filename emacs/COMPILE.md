@@ -43,7 +43,8 @@ Compile command: gcc -Wall -Wextra -o main main.c
 `RET` pokreće. Otvara se `*compilation*` prozor sa izlazom.
 
 **Gde se pokreće:** iz **korena projekta**, ne iz foldera fajla koji uređuješ.
-Config se penje uz stablo tražeći `Makefile`, `go.mod`, `build.sh` ili `.git`.
+Config se penje uz stablo tražeći `Makefile`, `go.mod`, `build.sh`, `ols.json`
+ili `.git`.
 Znači možeš biti u `src/net/http/server.c` i `C-c c` će naći Makefile na vrhu.
 
 Sa `C-u C-c c` pokreće iz trenutnog foldera umesto iz korena.
@@ -102,6 +103,10 @@ Emacs će prvi put pitati da li da veruje tim vrednostima — odgovori `!`
 
 Za Go je već podešeno u configu: `go build ./... && go vet ./...`.
 
+Za Odin: `odin build <folder paketa>`, putanja relativno od korena (npr.
+`odin build src/`), jer Odin builduje folder, ne fajl. Promeni u `odin run`
+ili `odin test` po potrebi.
+
 ## Zašto ovo zamenjuje LSP
 
 | LSP daje | Ovde koristiš |
@@ -122,12 +127,12 @@ Problem sa običnim grep-om: `C-c s` na `ColorDefault` daje 62 pogotka, a
 definicija je jedan od njih. Svi ostali su upotrebe.
 
 `C-c d` ne traži ime nego **oblik deklaracije** — `func Ime`, `type Ime`,
-`Ime = `, `#define Ime`. Isti simbol: 62 pogotka → 6.
+`Ime = `, `#define Ime`, u Odinu `Ime :`. Isti simbol: 62 pogotka → 6.
 
 | | |
 |---|---|
 | `C-c d` | definicija u projektu |
-| `C-u C-c d` | **i po zavisnostima** (Go module cache, `/usr/include`) |
+| `C-u C-c d` | **i po zavisnostima** (Go module cache, `/usr/include`, `odin root`) |
 | `C-c D` | `go doc` za simbol — najbrže za stdlib i zavisnosti |
 
 Oba popunjavaju polje simbolom pod kursorom, pa je obično samo `C-c d RET`.
@@ -173,4 +178,5 @@ Ako tvoj alat ispisuje greške drugačije, naučiš Emacs regexp-om:
 ```
 
 Tsoding ovo ima za Pascal. Ti verovatno nikad nećeš morati — gcc i go su
-već pokriveni.
+već pokriveni, a Odin (`fajl.odin(12:5) Error: ...`) je dodat u
+`rc/compile-rc.el` tačno ovako.
