@@ -93,25 +93,38 @@
 
 (defun simpgo--desired-indentation ()
   (let ((prev (simpgo--previous-non-empty-line)))
-    (if (not prev)
-        0
+    (cond
+     ;; Unutar `raw` stringa ili /* */ komentara je slobodan tekst -- ne
+     ;; diraj ga. gofmt ne dira sadrzaj raw stringa, pa ne bi ni popravio.
+     ((nth 8 (syntax-ppss (line-beginning-position)))
+      (current-indentation))
+     ((not prev)
+      0)
+     (t
       (let* ((indent-len tab-width)
              (cur-line  (string-trim (thing-at-point 'line t)))
              (prev-line (string-trim-right (car prev)))
              (prev-indent (cdr prev))
              (opens  (string-match-p "[{(\\[]\\s-*\\(?://.*\\)?$" prev-line))
-             (closes (string-match-p "^[})\\]]" cur-line)))
+             ;; ] mora biti PRVI u [...]; "\\]" unutar klase nije escape.
+             (closes (string-match-p "^[]})]" cur-line))
+             ;; prev-line zadrzava uvlacenje sa leve strane, pa \\s-*
+             (case-re "^\\s-*\\(?:case\\b\\|default\\b\\).*:\\s-*\\(?://.*\\)?$"))
         (cond
-         ;; case/default u switch-u idu na nivo samog switch-a
-         ((string-match-p "^\\(?:case\\b\\|default\\b\\).*:" cur-line)
-          (max (- prev-indent indent-len) 0))
-         ;; linija posle case: uvuci se
-         ((string-match-p "^\\(?:case\\b\\|default\\b\\).*:" prev-line)
-          (+ prev-indent indent-len))
+         ;; case/default idu na nivo samog switch-a. Iznad je ili
+         ;; "switch x {" ili drugi (prazan) case -- oba na istom nivou --
+         ;; ili telo prethodnog case-a, koje je tab dublje.
+         ((string-match-p case-re cur-line)
+          (if (or opens (string-match-p case-re prev-line))
+              prev-indent
+            (max (- prev-indent indent-len) 0)))
+         ;; linija posle case: uvuci se, osim ako zatvara switch
+         ((string-match-p case-re prev-line)
+          (if closes prev-indent (+ prev-indent indent-len)))
          ((and opens closes) prev-indent)
          (opens  (+ prev-indent indent-len))
          (closes (max (- prev-indent indent-len) 0))
-         (t prev-indent))))))
+         (t prev-indent)))))))
 
 (defun simpgo-indent-line ()
   (interactive)
