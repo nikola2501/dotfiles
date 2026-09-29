@@ -57,13 +57,52 @@
       default-directory
     (buffer-file-name)))
 
+;; U terminalu `kill-new' ne mora da stigne do macOS clipboarda, pa ga
+;; na macOS-u saljemo i kroz pbcopy. Tako Cmd+V radi u drugim programima.
+(defun rc/copy-to-clipboard (text)
+  (kill-new text)
+  (when (and (eq system-type 'darwin) (executable-find "pbcopy"))
+    (let ((process-connection-type nil))
+      (let ((proc (start-process "pbcopy" nil "pbcopy")))
+        (process-send-string proc text)
+        (process-send-eof proc))))
+  (message "%s" text))
+
 (defun rc/put-file-name-on-clipboard ()
-  "Stavi putanju trenutnog fajla u clipboard."
+  "Stavi apsolutnu putanju trenutnog fajla u clipboard."
   (interactive)
   (let ((filename (rc/buffer-file-name)))
     (when filename
-      (kill-new filename)
-      (message filename))))
+      (rc/copy-to-clipboard filename))))
+
+;; Relativno na koren GIT repoa, ne na `rc/project-root': u monorepou
+;; common/ ima svoj go.mod, pa bi se izgubio prefiks common/. Ovakva
+;; putanja je ono sto hoces u PR-u ili Slacku. Bez git poziva -- samo
+;; trazi .git nagore. Van repoa pada na `rc/project-root'.
+(defun rc/copy-relative-path (&optional with-line)
+  "Stavi putanju relativnu na koren git repoa u clipboard.
+Sa WITH-LINE (ili C-u) dodaje i :linija."
+  (interactive "P")
+  (let ((filename (rc/buffer-file-name)))
+    (if (not filename)
+        (message "Bafer nema fajl")
+      (rc/copy-to-clipboard
+       (concat (file-relative-name
+                filename
+                (or (locate-dominating-file filename ".git")
+                    (rc/project-root)))
+               (if (and with-line (not (derived-mode-p 'dired-mode)))
+                   (format ":%d" (line-number-at-pos))
+                 ""))))))
+
+(defun rc/copy-relative-path-with-line ()
+  "Kao `rc/copy-relative-path', ali sa :linija na kraju."
+  (interactive)
+  (rc/copy-relative-path t))
+
+(global-set-key (kbd "C-c f r") #'rc/copy-relative-path)
+(global-set-key (kbd "C-c f l") #'rc/copy-relative-path-with-line)
+(global-set-key (kbd "C-c f a") #'rc/put-file-name-on-clipboard)
 
 (defun rc/unfill-paragraph ()
   "Suprotno od `fill-paragraph' -- spoji pasus u jednu liniju."

@@ -175,6 +175,11 @@ build.sh, ols.json or .git -- the SAME root C-c c builds from.
                     (works on #include "foo.h")
   C-x d             dired -- inside: RET enter, ^ up, g refresh, q quit
 
+  C-c f r           copy the path relative to the git root  (common/pkg/db/x.go)
+  C-c f l           the same, with :line at the end         (common/pkg/db/x.go:42)
+  C-c f a           copy the absolute path
+                    (all three also go through pbcopy, so Cmd+V works elsewhere)
+
 
 --------------------------------------------------------------------------------
 BOOKMARKS  --  positions that survive a restart
