@@ -37,7 +37,11 @@
 ;; Naysayer -- paleta iz editora Jonathana Blowa.
 ;; Menjanje teme: zameni ime ovde pa `emacs-restart'.
 ;; Instalirana je i gruber-darker ako hoces nazad.
-(rc/require-theme 'naysayer)
+;; naysayer-theme.el nema `lexical-binding' cookie, pa Emacs 31 pri svakom
+;; startu iskoci *Warnings* bafer. Bezopasno -- tema radi. Upozorenje se i
+;; dalje upise u *Warnings*, samo vise ne iskace.
+(let ((warning-suppress-types (cons '(files) warning-suppress-types)))
+  (rc/require-theme 'naysayer))
 
 ;; Relativni brojevi linija -- Vim navika, i korisni su za M-<broj> skokove.
 (setq display-line-numbers-type 'relative)
@@ -142,6 +146,16 @@
 (rc/require 'magit)
 
 (setq magit-auto-revert-mode nil)
+
+;; Default je da pre SVAKOG osvezavanja pita "Save file X?" za svaki
+;; nesnimljen bafer iz repoa. Na `n' ne pamti odgovor, pa pita ponovo na
+;; sledecu komandu -- i blokira ceo daemon dok ne odgovoris. Snimas sam.
+(setq magit-save-repository-buffers nil)
+
+;; "Tags: v1.2.3 (17)" red u statusu -- `git describe' pri svakom
+;; osvezavanju. Mereno: ~60 od ~310 ms celog `g'.
+(with-eval-after-load 'magit-status
+  (remove-hook 'magit-status-headers-hook #'magit-insert-tags-header))
 
 ;; /usr/bin/git na macOS-u nije git nego xcrun shim koji pri SVAKOM pozivu
 ;; trazi pravi git. Magit na jedan RET u diffu pozove git ~27 puta.
