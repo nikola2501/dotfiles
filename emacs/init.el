@@ -143,6 +143,50 @@
 
 (setq magit-auto-revert-mode nil)
 
+;; /usr/bin/git na macOS-u nije git nego xcrun shim koji pri SVAKOM pozivu
+;; trazi pravi git. Magit na jedan RET u diffu pozove git ~27 puta.
+;; Mereno iz Emacsa: shim 14 ms po pozivu, pravi git 3.3 ms.
+(when (eq system-type 'darwin)
+  (let ((git "/Library/Developer/CommandLineTools/usr/bin/git"))
+    (when (file-executable-p git)
+      (setq magit-git-executable git))))
+
+;; Skok iz diffa u fajl bez gita. Magitov RET za jedan skok pozove git
+;; ~27 puta: razresava range, trazi merge-base, pa otvara BLOB sa brancha
+;; (read-only kopiju `fajl.~branch~'), a ne pravi fajl. Mereno: ~100-200 ms.
+;; Ovde se sve cita iz diff bafera, koji vec zna fajl i broj linije:
+;; 2-5 ms. Otvara PRAVI fajl iz worktree-a, pa mozes odmah da ga menjas.
+;;
+;; Cena: linija je iz commitovanog stanja. Ako fajl ima necommitovane
+;; izmene iznad te linije, skok promasi za toliko linija. Na obrisanoj
+;; liniji skace na mesto gde je bila.
+;; Stari RET (sa blobom) ostaje na M-x magit-diff-visit-file.
+(defun rc/magit-visit-fast (&optional other-window)
+  "Iz magit diffa otvori pravi fajl na liniji iz hunka. Bez git poziva."
+  (interactive "P")
+  (let* ((fsec (or (magit-diff--file-section) (user-error "Nije diff")))
+         ;; default-directory diff bafera je koren repoa.
+         (path (expand-file-name (oref fsec value)))
+         (hunk (magit-diff--hunk-section))
+         (line (and hunk (magit-diff-hunk-line hunk nil)))
+         (col  (and hunk (magit-diff-hunk-column hunk nil))))
+    (if other-window (find-file-other-window path) (find-file path))
+    (when line
+      (goto-char (point-min))
+      (forward-line (1- line))
+      (move-to-column col))))
+
+(defun rc/magit-visit-fast-other-window ()
+  "Kao `rc/magit-visit-fast', ali u drugom prozoru -- diff ostaje vidljiv."
+  (interactive)
+  (rc/magit-visit-fast t))
+
+;; U terminalu C-RET stize kao obican RET, zato `o' za drugi prozor.
+(with-eval-after-load 'magit-diff
+  (define-key magit-diff-section-map (kbd "RET") #'rc/magit-visit-fast)
+  (define-key magit-diff-section-map (kbd "<return>") #'rc/magit-visit-fast)
+  (define-key magit-diff-section-map (kbd "o") #'rc/magit-visit-fast-other-window))
+
 (global-set-key (kbd "C-c m s") #'magit-status)
 (global-set-key (kbd "C-c m l") #'magit-log)
 
