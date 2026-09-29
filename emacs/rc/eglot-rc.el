@@ -8,13 +8,18 @@
 ;; Mereno: featurep 'eglot = nil posle starta; prvi `require' kad ga
 ;; pozoves traje 21 ms, i placas ga samo tada.
 ;;
-;; Ceo ovaj fajl je `with-eval-after-load' plus cetiri bindinga, tj.
+;; Ceo ovaj fajl je `with-eval-after-load' plus bindinzi, tj.
 ;; nula koda pri startu i nula hookova dok LSP nije upaljen.
 ;;
 ;;   C-c l l   upali LSP u ovom projektu   (M-x eglot)
 ;;   C-c l q   ugasi ga                    (M-x eglot-shutdown)
 ;;   C-c l r   preimenuj simbol svuda
 ;;   C-c l a   code actions (quick fix)
+;;   C-c l i   implementacije interfejsa
+;;   C-c l h   hover docs u prozoru (prati kursor dok je otvoren)
+;;   C-c l e   lista gresaka u fajlu
+;;   C-c l n   sledeca greska
+;;   C-c l p   prethodna greska
 ;;
 ;; Kad je upaljen, radi i ono sto inace nemas: M-. skace na definiciju
 ;; kroz ceo projekat (tacno, ne preko regexpa kao C-c d), M-? nalazi sve
@@ -46,5 +51,16 @@
 (global-set-key (kbd "C-c l q") #'eglot-shutdown)
 (global-set-key (kbd "C-c l r") #'eglot-rename)
 (global-set-key (kbd "C-c l a") #'eglot-code-actions)
+(global-set-key (kbd "C-c l i") #'eglot-find-implementation)
+
+;; eldoc vec pise potpis u echo areji dok stojis na simbolu. Ovo otvara
+;; CEO doc komentar u zasebnom prozoru, koji se osvezava kako se kreces.
+(global-set-key (kbd "C-c l h") #'eldoc-doc-buffer)
+
+;; Greske iz LSP-a idu kroz flymake, ne kroz compile bafer -- zato
+;; M-g n / M-g p za njih ne rade.
+(global-set-key (kbd "C-c l e") #'flymake-show-buffer-diagnostics)
+(global-set-key (kbd "C-c l n") #'flymake-goto-next-error)
+(global-set-key (kbd "C-c l p") #'flymake-goto-prev-error)
 
 (provide 'eglot-rc)

@@ -205,14 +205,17 @@ in a buffer, when you land in code you do not know.
   C-c l q           turn it off, the server process dies with it
   C-c l r           rename the symbol everywhere
   C-c l a           code actions / quick fix
+  C-c l i           implementations of the interface under point
+  C-c l h           hover docs: full doc in a window, follows point
+  C-c l e           list every diagnostic in this file
+  C-c l n / C-c l p next / previous diagnostic
 
 While it is on you also get, in place of the regexp tricks:
 
   M-.               jump to the definition, precisely   (vs C-c d, which greps)
   M-,               jump back
   M-?               find every reference
-  C-h .             show the docs for the thing under point
-  M-g n / M-g p     walk the diagnostics, same keys as compiler errors
+  C-h .             show the diagnostic message under point
 
   Completion becomes semantic on its own -- company-capf is already the first
   backend, so the same TAB works, it just gets better answers.

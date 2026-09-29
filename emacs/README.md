@@ -191,6 +191,10 @@ C-c l l    turn it on in this buffer   (gopls for Go, clangd for C, ols for Odin
 C-c l q    turn it off, the server dies with it
 C-c l r    rename the symbol everywhere
 C-c l a    code actions / quick fix
+C-c l i    implementations of the interface under point
+C-c l h    hover docs: full doc in a window, follows point
+C-c l e    list every diagnostic in this file
+C-c l n/p  next / previous diagnostic
 ```
 
 While it runs the mode line shows `[eglot:gopls]` and you get:
@@ -200,8 +204,7 @@ While it runs the mode line shows `[eglot:gopls]` and you get:
 | `M-.` | jump to the definition, precisely (`C-c d`, the regexp one, stays) |
 | `M-,` | jump back |
 | `M-?` | every reference |
-| `C-h .` | documentation for the symbol under point |
-| `M-g n` / `M-g p` | walk the diagnostics, the same keys as for errors |
+| `C-h .` | the diagnostic message under point |
 
 Completion turns semantic on its own — `company-capf` is already the first
 backend.
