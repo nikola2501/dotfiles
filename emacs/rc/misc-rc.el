@@ -57,13 +57,19 @@
       default-directory
     (buffer-file-name)))
 
-;; U terminalu `kill-new' ne mora da stigne do macOS clipboarda, pa ga
-;; na macOS-u saljemo i kroz pbcopy. Tako Cmd+V radi u drugim programima.
+;; U terminalu (i u daemonu) `kill-new' ne stize do sistemskog clipboarda,
+;; pa ga saljemo i kroz pbcopy (macOS) ili wl-copy (Wayland). Tako Cmd+V /
+;; Ctrl+V radi u drugim programima.
+(defun rc/clipboard-program ()
+  (cond ((eq system-type 'darwin) (executable-find "pbcopy"))
+        ((getenv "WAYLAND_DISPLAY") (executable-find "wl-copy"))))
+
 (defun rc/copy-to-clipboard (text)
   (kill-new text)
-  (when (and (eq system-type 'darwin) (executable-find "pbcopy"))
-    (let ((process-connection-type nil))
-      (let ((proc (start-process "pbcopy" nil "pbcopy")))
+  (let ((prog (rc/clipboard-program)))
+    (when prog
+      (let* ((process-connection-type nil)
+             (proc (start-process "clipboard" nil prog)))
         (process-send-string proc text)
         (process-send-eof proc))))
   (message "%s" text))

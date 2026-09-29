@@ -39,8 +39,10 @@
 ;; Instalirana je i gruber-darker ako hoces nazad.
 ;; naysayer-theme.el nema `lexical-binding' cookie, pa Emacs 31 pri svakom
 ;; startu iskoci *Warnings* bafer. Bezopasno -- tema radi. Upozorenje se i
-;; dalje upise u *Warnings*, samo vise ne iskace.
-(let ((warning-suppress-types (cons '(files) warning-suppress-types)))
+;; dalje upise u *Warnings*, samo vise ne iskace. Gusi se samo taj tip,
+;; ne sva `files' upozorenja.
+(let ((warning-suppress-types
+       (cons '(files missing-lexbind-cookie) warning-suppress-types)))
   (rc/require-theme 'naysayer))
 
 ;; Relativni brojevi linija -- Vim navika, i korisni su za M-<broj> skokove.
@@ -173,7 +175,8 @@
 ;;
 ;; Cena: linija je iz commitovanog stanja. Ako fajl ima necommitovane
 ;; izmene iznad te linije, skok promasi za toliko linija. Na obrisanoj
-;; liniji skace na mesto gde je bila.
+;; liniji skace na mesto gde je bila. Ako fajla vise nema u worktree-u
+;; (obrisan u diffu), pada na magitov blob -- bar vidis sta je bilo.
 ;; Stari RET (sa blobom) ostaje na M-x magit-diff-visit-file.
 (defun rc/magit-visit-fast (&optional other-window)
   "Iz magit diffa otvori pravi fajl na liniji iz hunka. Bez git poziva."
@@ -184,22 +187,29 @@
          (hunk (magit-diff--hunk-section))
          (line (and hunk (magit-diff-hunk-line hunk nil)))
          (col  (and hunk (magit-diff-hunk-column hunk nil))))
-    (if other-window (find-file-other-window path) (find-file path))
-    (when line
-      (goto-char (point-min))
-      (forward-line (1- line))
-      (move-to-column col))))
+    (if (not (file-exists-p path))
+        (call-interactively (if other-window
+                                #'magit-diff-visit-file-other-window
+                              #'magit-diff-visit-file))
+      (if other-window (find-file-other-window path) (find-file path))
+      (when line
+        (goto-char (point-min))
+        (forward-line (1- line))
+        (move-to-column col)))))
 
 (defun rc/magit-visit-fast-other-window ()
   "Kao `rc/magit-visit-fast', ali u drugom prozoru -- diff ostaje vidljiv."
   (interactive)
   (rc/magit-visit-fast t))
 
-;; U terminalu C-RET stize kao obican RET, zato `o' za drugi prozor.
+;; U terminalu C-RET stize kao obican RET, zato C-x 4 RET za drugi prozor
+;; (standardni Emacs "4 = drugi prozor" prefiks, kao C-x 4 f). Ne `o':
+;; to bi u diffu zaklonilo magitov `o' (submodule meni).
 (with-eval-after-load 'magit-diff
   (define-key magit-diff-section-map (kbd "RET") #'rc/magit-visit-fast)
   (define-key magit-diff-section-map (kbd "<return>") #'rc/magit-visit-fast)
-  (define-key magit-diff-section-map (kbd "o") #'rc/magit-visit-fast-other-window))
+  (define-key magit-diff-section-map (kbd "C-x 4 RET") #'rc/magit-visit-fast-other-window)
+  (define-key magit-diff-section-map (kbd "C-x 4 <return>") #'rc/magit-visit-fast-other-window))
 
 (global-set-key (kbd "C-c m s") #'magit-status)
 (global-set-key (kbd "C-c m l") #'magit-log)

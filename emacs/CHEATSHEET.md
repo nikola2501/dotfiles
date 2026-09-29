@@ -178,7 +178,7 @@ build.sh, ols.json or .git -- the SAME root C-c c builds from.
   C-c f r           copy the path relative to the git root  (common/pkg/db/x.go)
   C-c f l           the same, with :line at the end         (common/pkg/db/x.go:42)
   C-c f a           copy the absolute path
-                    (all three also go through pbcopy, so Cmd+V works elsewhere)
+                    (all three also go through pbcopy / wl-copy, so paste works elsewhere)
 
 
 --------------------------------------------------------------------------------
@@ -436,6 +436,10 @@ GIT  (magit)
     c c commit, then C-c C-c to confirm
     P p push                F p pull
     ?   help                q   quit
+
+  Inside a diff:
+    RET          open the real file at that line (fast, no git calls)
+    C-x 4 RET    the same, in the other window
 
 
 ================================================================================
