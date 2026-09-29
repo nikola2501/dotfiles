@@ -208,6 +208,7 @@ in a buffer, when you land in code you do not know.
   C-c l i           implementations of the interface under point
   C-c l h           hover docs: full doc in a window, follows point
   C-c l e           list every diagnostic in this file
+  C-c l E           the same for the whole project
   C-c l n / C-c l p next / previous diagnostic
 
 While it is on you also get, in place of the regexp tricks:

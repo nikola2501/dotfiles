@@ -18,6 +18,7 @@
 ;;   C-c l i   implementacije interfejsa
 ;;   C-c l h   hover docs u prozoru (prati kursor dok je otvoren)
 ;;   C-c l e   lista gresaka u fajlu
+;;   C-c l E   lista gresaka u celom projektu
 ;;   C-c l n   sledeca greska
 ;;   C-c l p   prethodna greska
 ;;
@@ -60,6 +61,9 @@
 ;; Greske iz LSP-a idu kroz flymake, ne kroz compile bafer -- zato
 ;; M-g n / M-g p za njih ne rade.
 (global-set-key (kbd "C-c l e") #'flymake-show-buffer-diagnostics)
+;; Ceo projekat -- ali samo fajlovi za koje je server poslao dijagnoze,
+;; kod gopls-a obicno paketi koje si otvarao.
+(global-set-key (kbd "C-c l E") #'flymake-show-project-diagnostics)
 (global-set-key (kbd "C-c l n") #'flymake-goto-next-error)
 (global-set-key (kbd "C-c l p") #'flymake-goto-prev-error)
 

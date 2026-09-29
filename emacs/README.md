@@ -194,6 +194,7 @@ C-c l a    code actions / quick fix
 C-c l i    implementations of the interface under point
 C-c l h    hover docs: full doc in a window, follows point
 C-c l e    list every diagnostic in this file
+C-c l E    the same for the whole project
 C-c l n/p  next / previous diagnostic
 ```
 
