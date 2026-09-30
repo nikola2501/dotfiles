@@ -106,9 +106,59 @@ Sa WITH-LINE (ili C-u) dodaje i :linija."
   (interactive)
   (rc/copy-relative-path t))
 
+;; GitHub permalink: https://github.com/org/repo/blob/<SHA>/putanja#L42
+;; SHA umesto imena brancha, pa link ostaje tacan i kad se branch pomeri.
+;; Tri git poziva (HEAD, remote URL, da li je commit pushovan), nekoliko ms.
+;; Koristi isti git kao magit (vidi init.el), ne /usr/bin/git shim.
+
+(defun rc/remote-to-https (url)
+  "git@host:org/repo.git, ssh://git@host/org/repo, https://... -> https://host/org/repo."
+  (let ((url (string-remove-suffix ".git" (string-trim url))))
+    (cond
+     ((string-match "\\`[^@/]+@\\([^:/]+\\):\\(.+\\)\\'" url)
+      (format "https://%s/%s" (match-string 1 url) (match-string 2 url)))
+     ((string-match "\\`ssh://\\(?:[^@/]+@\\)?\\([^:/]+\\)\\(?::[0-9]+\\)?/\\(.+\\)\\'" url)
+      (format "https://%s/%s" (match-string 1 url) (match-string 2 url)))
+     ((string-match "\\`https?://\\(?:[^@/]+@\\)?\\(.+\\)\\'" url)
+      (format "https://%s" (match-string 1 url))))))
+
+(defun rc/copy-permalink ()
+  "Stavi GitHub permalink za liniju (ili oznaceni region) u clipboard."
+  (interactive)
+  (let* ((file (or (buffer-file-name) (user-error "Bafer nema fajl")))
+         (root (or (locate-dominating-file file ".git")
+                   (user-error "Nije git repo")))
+         (git (if (boundp 'magit-git-executable) magit-git-executable "git"))
+         (default-directory root)
+         (sha (car (process-lines-ignore-status git "rev-parse" "HEAD")))
+         (remote (car (process-lines-ignore-status git "remote" "get-url" "origin")))
+         (base (or (and remote (rc/remote-to-https remote))
+                   (user-error "Nema origin remote")))
+         (beg (line-number-at-pos (if (use-region-p) (region-beginning) (point))))
+         ;; Region koji se zavrsava na pocetku linije ne ukljucuje tu liniju.
+         (end (if (use-region-p)
+                  (save-excursion
+                    (goto-char (region-end))
+                    (if (and (bolp) (> (point) (region-beginning)))
+                        (1- (line-number-at-pos))
+                      (line-number-at-pos)))
+                beg))
+         (url (format "%s/blob/%s/%s#L%d%s" base sha
+                      (file-relative-name file root) beg
+                      (if (> end beg) (format "-L%d" end) ""))))
+    (rc/copy-to-clipboard url)
+    (deactivate-mark)
+    (unless (process-lines-ignore-status git "branch" "-r" "--contains" sha)
+      (message "%s\nPAZNJA: commit %s nije pushovan -- link ce dati 404"
+               url (substring sha 0 8)))
+    (when (buffer-modified-p)
+      (message "%s\nPAZNJA: bafer nije snimljen -- linije mozda ne odgovaraju commitu"
+               url))))
+
 (global-set-key (kbd "C-c f r") #'rc/copy-relative-path)
 (global-set-key (kbd "C-c f l") #'rc/copy-relative-path-with-line)
 (global-set-key (kbd "C-c f a") #'rc/put-file-name-on-clipboard)
+(global-set-key (kbd "C-c f p") #'rc/copy-permalink)
 
 (defun rc/unfill-paragraph ()
   "Suprotno od `fill-paragraph' -- spoji pasus u jednu liniju."

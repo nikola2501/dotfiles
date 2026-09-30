@@ -178,7 +178,9 @@ build.sh, ols.json or .git -- the SAME root C-c c builds from.
   C-c f r           copy the path relative to the git root  (common/pkg/db/x.go)
   C-c f l           the same, with :line at the end         (common/pkg/db/x.go:42)
   C-c f a           copy the absolute path
-                    (all three also go through pbcopy / wl-copy, so paste works elsewhere)
+  C-c f p           copy the GitHub permalink for this line (or the region)
+                    pinned to the commit SHA; warns if that commit is not pushed
+                    (all of these also go through pbcopy / wl-copy, so paste works elsewhere)
 
 
 --------------------------------------------------------------------------------

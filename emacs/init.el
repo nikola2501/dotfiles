@@ -34,16 +34,18 @@
 (column-number-mode 1)
 (show-paren-mode 1)
 
-;; Naysayer -- paleta iz editora Jonathana Blowa.
+;; Matrix -- port moje Sublime teme "Cyanide - Matrix", vidi
+;; local/matrix-theme.el. Nije paket, pa ide `load-theme' a ne
+;; `rc/require-theme'; `t' znaci bez "Really load?" pitanja.
 ;; Menjanje teme: zameni ime ovde pa `emacs-restart'.
-;; Instalirana je i gruber-darker ako hoces nazad.
-;; naysayer-theme.el nema `lexical-binding' cookie, pa Emacs 31 pri svakom
-;; startu iskoci *Warnings* bafer. Bezopasno -- tema radi. Upozorenje se i
-;; dalje upise u *Warnings*, samo vise ne iskace. Gusi se samo taj tip,
-;; ne sva `files' upozorenja.
-(let ((warning-suppress-types
-       (cons '(files missing-lexbind-cookie) warning-suppress-types)))
-  (rc/require-theme 'naysayer))
+(add-to-list 'custom-theme-load-path (expand-file-name "local/" user-emacs-directory))
+(load-theme 'matrix t)
+
+;; Naysayer (paleta iz editora Jonathana Blowa) ostaje instaliran. Nazad:
+;; zameni `(load-theme 'matrix t)' gore ovim. naysayer-theme.el nema
+;; `lexical-binding' cookie, pa Emacs 31 iskoci *Warnings* -- let to gasi.
+;;   (let ((warning-suppress-types (cons '(files missing-lexbind-cookie) warning-suppress-types)))
+;;     (rc/require-theme 'naysayer))
 
 ;; Relativni brojevi linija -- Vim navika, i korisni su za M-<broj> skokove.
 (setq display-line-numbers-type 'relative)

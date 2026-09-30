@@ -43,19 +43,26 @@ left over from the earlier completion setup and no longer loaded by anything.
 
 ## Theme
 
-`naysayer` — background `#062329`, text `#d1b897`, comments `#44b340`.
+`matrix` — my own, in `local/matrix-theme.el`: a port of my Sublime theme
+"Cyanide - Matrix" (neon green `#00ff41` on `#0a0a0a`, crimson comments
+`#ff0055`, azure strings `#00bfff`), with the same palette as the nvim port.
 Emacs in a terminal emits real 24-bit RGB, so it looks the same as in a GUI
 frame (the terminal has to support truecolor — kitty, alacritty, foot and
 wezterm do).
 
 **Important for the daemon:** without `COLORTERM=truecolor` in the *daemon's*
 environment a frame only gets 256 colors and Emacs approximates the theme —
-`#062329` turns into navy `#00005f`. That is why the variable lives in
+a dark background can turn into navy `#00005f`. That is why the variable lives in
 `~/.config/systemd/user/emacs.service.d/path.conf`. Setting `COLORTERM` in
 the shell does not help: `emacsclient` does not forward it to the daemon.
 
-Changing the theme: edit `rc/require-theme` in `init.el`, then `emacs-restart`.
-`gruber-darker` is still installed if you want to go back.
+Changing the theme: edit the `load-theme` line in `init.el`, then
+`emacs-restart`. `naysayer` (background `#062329`, text `#d1b897`) is still
+installed; the line to go back is in a comment right below.
+
+In a terminal the cursor color comes from the terminal, not from the theme.
+For the green cursor, Ghostty has `cursor-color = #39ff14` and
+`cursor-text = #0a0a0a`.
 
 ## vc is switched off
 
