@@ -160,16 +160,19 @@ fi
 
 # Tools the config shells out to. Missing ones degrade one feature each,
 # they do not break the config, so this only warns.
+# (bash 3.2 on macOS cannot parse a `case` inside "$(...)", hence the function.)
+dep_note() {
+  case $1 in
+    git)   echo "magit will not work" ;;
+    rg)    echo "C-c s (project search) will not work" ;;
+    go)    echo "go build / C-c c in Go projects" ;;
+    gofmt) echo "no format-on-save for Go" ;;
+    make)  echo "the default compile command is 'make'" ;;
+    gcc)   echo "C compilation" ;;
+  esac
+}
 for t in git rg go gofmt make gcc; do
-  command -v "$t" >/dev/null 2>&1 || say "note  '$t' not found — $(
-    case $t in
-      git)   echo "magit will not work" ;;
-      rg)    echo "C-c s (project search) will not work" ;;
-      go)    echo "go build / C-c c in Go projects" ;;
-      gofmt) echo "no format-on-save for Go" ;;
-      make)  echo "the default compile command is 'make'" ;;
-      gcc)   echo "C compilation" ;;
-    esac)"
+  command -v "$t" >/dev/null 2>&1 || say "note  '$t' not found — $(dep_note "$t")"
 done
 echo
 
@@ -180,6 +183,26 @@ link "$DOTFILES/emacs/local"         "$EMACS_DIR/local"
 link "$DOTFILES/emacs/README.md"     "$EMACS_DIR/README.md"
 link "$DOTFILES/emacs/COMPILE.md"    "$EMACS_DIR/COMPILE.md"
 link "$DOTFILES/emacs/CHEATSHEET.md" "$EMACS_DIR/CHEATSHEET.md"
+
+# ---------------------------------------------------------------- terminfo
+# The daemon is started by launchd/systemd, so it does not see $TERMINFO from
+# your shell. Terminals that ship their own terminfo (Ghostty, kitty, wezterm)
+# only set that variable, and then `ec` dies with
+#   *ERROR*: Terminal type xterm-ghostty is not defined
+# ncurses always searches ~/.terminfo, so compile the entry there once.
+if [ -n "${TERM:-}" ] && ! env -u TERMINFO infocmp "$TERM" >/dev/null 2>&1; then
+  if infocmp -x "$TERM" >/dev/null 2>&1; then
+    if [ "$DRY" -eq 1 ]; then
+      say "[dry-run] would compile terminfo for $TERM into ~/.terminfo"
+    else
+      infocmp -x "$TERM" | tic -x -o "$HOME/.terminfo" - 2>/dev/null \
+        && say "terminfo  compiled $TERM into ~/.terminfo (the daemon cannot see \$TERMINFO)" \
+        || say "terminfo  could not compile $TERM — run: infocmp -x $TERM | tic -x -o ~/.terminfo -"
+    fi
+  else
+    say "note  terminfo for $TERM not found — 'ec' may fail with 'Terminal type not defined'"
+  fi
+fi
 
 # ---------------------------------------------------------------- zsh
 zsh_block() {
