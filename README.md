@@ -1,13 +1,14 @@
 # dotfiles
 
-Config for Linux and macOS. Two installers, one per editor:
+Config for Linux and macOS. One installer per tool:
 
 | script | sets up |
 |---|---|
 | `install-helix.sh` | Helix config, themes, the `hx-*` scripts, the `h` alias |
 | `install-sublime.sh` | Sublime Text's `User/` config and package list |
+| `install-tmux.sh` | `~/.tmux.conf`, tpm and the tmux plugins |
 
-Both symlink rather than copy, back up anything in the way, and ask before
+All symlink rather than copy, back up anything in the way, and ask before
 replacing a file that differs from the repo's copy.
 
 ```sh
@@ -70,10 +71,13 @@ this repo's to own. There the rules are:
 | `emacs/init.el`, `emacs/rc/`, `emacs/local/` | `~/.config/emacs/` (via `install-emacs.sh`) |
 | `emacs/*.md` | `~/.config/emacs/` (via `install-emacs.sh`) |
 | the `# >>> dotfiles: emacs >>>` block | appended to `~/.zshrc` |
+| `tmux/tmux.conf` | `~/.tmux.conf` (via `install-tmux.sh`) |
 
 `install-helix.sh` manages the helix and `bin/` rows; `install-emacs.sh` manages
 the emacs rows (and sets up the Emacs daemon — systemd on Linux, launchd on
-macOS). The other directories (`tmux/`, `ghostty/`, `i3/`, `alacritty/`,
+macOS); `install-tmux.sh` links the tmux config, clones tpm into
+`~/.tmux/plugins/tpm` and installs the plugins `tmux.conf` names, reloading a
+running server. The other directories (`ghostty/`, `i3/`, `alacritty/`,
 `sway/`, `zellij/`, `zed/`, `nixos/`, `claude/`, `.zshrc`, `starship.toml`,
 `.vimrc`) are stored here but not linked — link them by hand, or extend an
 installer when you want them automated.
