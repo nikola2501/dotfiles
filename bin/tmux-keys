@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+# tmux-keys — the cheatsheet for the bindings this dotfiles repo adds to tmux.
+#
+# tmux's own list (list-keys -N) mixes these in with ninety stock keys. This
+# shows only ours, pulled out of the -N notes in tmux.conf itself — one source
+# of truth, nothing to keep in sync. A bind without -N is not listed.
+#
+#   tmux-keys           print the cheatsheet
+#   tmux-keys --popup   show it in a tmux popup sized to fit; any key closes it
+
+set -uo pipefail
+
+CFG="$HOME/.tmux.conf"
+SELF="$(cd "$(dirname "$0")" && pwd)/$(basename "$0")"     # the popup starts elsewhere
+
+case "${1:-}" in
+  --popup)
+    lines=$("$SELF" | wc -l)
+    width=$("$SELF" | awk '{ if (length($0) > m) m = length($0) } END { print m }')
+    exec tmux display-popup -E -T " keys " -w $((width + 4)) -h $((lines + 3)) "$SELF --wait" ;;
+  --wait)
+    "$SELF"; read -rsn1; exit 0 ;;
+esac
+
+prefix=$(sed -n 's/^set -g prefix //p' "$CFG" | tail -1)
+
+awk -v prefix="${prefix:-C-b}" '
+  # C-a -> Ctrl+a, M-H -> Alt+Shift+h, S-Left -> Shift+Left
+  function human(k,   out) {
+    out = ""
+    while (k ~ /^[CMS]-./) {
+      out = out (substr(k, 1, 1) == "C" ? "Ctrl+" : substr(k, 1, 1) == "M" ? "Alt+" : "Shift+")
+      k = substr(k, 3)
+    }
+    if (out != "" && k ~ /^[A-Z]$/) return out "Shift+" tolower(k)
+    return out k
+  }
+  function flush() {
+    if (key == "") return
+    if (last != "") { key = key ".." last; sub(/[0-9]$/, "N", desc) }
+    out[gprev] = out[gprev] sprintf("  %-14s %s\n", key, desc)
+    key = ""; last = ""
+  }
+  /^bind(-key)? +-N +"/ {
+    d = $0; sub(/^[^"]*"/, "", d); rest = d; sub(/".*/, "", d); sub(/^[^"]*" */, "", rest)
+    n = split(rest, w, / +/)
+    if (w[1] == "-n")      { group = "no prefix"; k = human(w[2]) }
+    else if (w[1] == "-T") { group = "copy mode"; k = human(w[3]) }
+    else                   { group = human(prefix) ", then"; k = human(w[1]) }
+
+    # Alt+1 "Select window 1" .. Alt+9 "Select window 9" fold into one line
+    stem = k; sub(/[0-9]$/, "", stem); dstem = d; sub(/[0-9]$/, "", dstem)
+    if (k ~ /[0-9]$/ && stem == kstem && dstem == dprev && group == gprev) {
+      last = substr(k, length(k)); next
+    }
+    flush()
+    key = k; desc = d; kstem = stem; dprev = dstem; gprev = group
+  }
+  # grouped, whatever order the config binds them in
+  END {
+    flush()
+    ng = split(human(prefix) ", then|no prefix|copy mode", g, "|")
+    for (i = 1; i <= ng; i++)
+      if (out[g[i]] != "") printf "%s%s\n%s", (sep++ ? "\n" : ""), g[i], out[g[i]]
+  }
+' "$CFG"

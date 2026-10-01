@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # install-tmux.sh — set up tmux from these dotfiles. Linux and macOS.
 #
-#   ./install-tmux.sh              link ~/.tmux.conf, install tpm and the plugins
+#   ./install-tmux.sh              link ~/.tmux.conf and tmux-keys, install tpm
+#                                  and the plugins
 #   ./install-tmux.sh --dry-run    show what would happen, change nothing
 #   ./install-tmux.sh --force      replace a differing ~/.tmux.conf without asking
 #   ./install-tmux.sh --uninstall  remove the link, restore the backup
@@ -20,6 +21,8 @@ set -euo pipefail
 DOTFILES=$(cd "$(dirname "$0")" && pwd)
 SRC="$DOTFILES/tmux/tmux.conf"
 DST="$HOME/.tmux.conf"
+KEYS_SRC="$DOTFILES/bin/tmux-keys"
+KEYS_DST="$HOME/.local/bin/tmux-keys"      # the C-a ? popup, see tmux.conf
 TPM="$HOME/.tmux/plugins/tpm"
 TPM_URL=https://github.com/tmux-plugins/tpm
 STAMP=$(date +%Y%m%d-%H%M%S)
@@ -57,6 +60,7 @@ link() {
       return 1
     fi
   fi
+  run mkdir -p "$(dirname "$dst")"
   if [ -e "$dst" ] || [ -L "$dst" ]; then
     run mv "$dst" "$dst.bak-$STAMP"; say "moved $dst -> $(basename "$dst").bak-$STAMP"
   fi
@@ -66,15 +70,18 @@ link() {
 
 # ---------------------------------------------------------------- uninstall
 if [ "$UNINSTALL" -eq 1 ]; then
-  echo; echo "  removing the tmux config link"; echo
-  if [ -L "$DST" ] && [ "$(readlink "$DST")" = "$SRC" ]; then
-    run rm "$DST"
-    newest=$(ls -1dt "$DST".bak-* 2>/dev/null | head -1 || true)
-    if [ -n "$newest" ]; then run mv "$newest" "$DST"; say "restored $DST"
-    else say "removed  $DST"; fi
-  else
-    say "not ours  $DST"
-  fi
+  echo; echo "  removing the tmux config links"; echo
+  for pair in "$SRC|$DST" "$KEYS_SRC|$KEYS_DST"; do
+    src=${pair%|*}; dst=${pair#*|}
+    if [ -L "$dst" ] && [ "$(readlink "$dst")" = "$src" ]; then
+      run rm "$dst"
+      newest=$(ls -1dt "$dst".bak-* 2>/dev/null | head -1 || true)
+      if [ -n "$newest" ]; then run mv "$newest" "$dst"; say "restored $dst"
+      else say "removed  $dst"; fi
+    else
+      say "not ours  $dst"
+    fi
+  done
   say "left alone  $HOME/.tmux/plugins — delete it by hand if you want it gone"
   echo; say "done"; echo; exit 0
 fi
@@ -89,6 +96,7 @@ if ! link "$SRC" "$DST"; then
   echo; say "~/.tmux.conf is not the repo's — plugins not installed"; echo
   exit 1
 fi
+link "$KEYS_SRC" "$KEYS_DST" || true
 
 # ---------------------------------------------------------------- plugins
 if ! command -v tmux >/dev/null || ! command -v git >/dev/null; then
@@ -113,5 +121,5 @@ else
 fi
 
 echo
-echo "  Done. The prefix is Ctrl+a."
+echo "  Done. The prefix is Ctrl+a; Ctrl+a ? shows the keys."
 echo
